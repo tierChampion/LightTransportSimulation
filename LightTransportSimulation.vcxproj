@@ -1,0 +1,160 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{7BE53EB4-82DD-43CE-8086-DAD9994F2E50}</ProjectGuid>
+    <RootNamespace>LightTransportSimulation</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.2.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;WIN64;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>cudart_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <CudaCompile>
+      <TargetMachinePlatform>64</TargetMachinePlatform>
+      <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
+      <AdditionalOptions>-std=c++17 -Xcompiler "/std:c++17" %(AdditionalOptions)</AdditionalOptions>
+    </CudaCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PreprocessorDefinitions>WIN32;WIN64;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <SubSystem>Console</SubSystem>
+      <AdditionalDependencies>cudart_static.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <CudaCompile>
+      <TargetMachinePlatform>64</TargetMachinePlatform>
+      <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
+      <AdditionalOptions>-std=c++17 -Xcompiler "/std:c++17" %(AdditionalOptions)</AdditionalOptions>
+    </CudaCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <CudaCompile>
+      <TargetMachinePlatform>64</TargetMachinePlatform>
+    </CudaCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+    <CudaCompile>
+      <TargetMachinePlatform>64</TargetMachinePlatform>
+    </CudaCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CudaCompile Include="src\core\ImageIO_loading.cu" />
+    <CudaCompile Include="src\geometry\Interaction.cu" />
+    <CudaCompile Include="src\lights\VisibilityTester.cu" />
+    <CudaCompile Include="src\LightTransportSimulation.cu" />
+    <CudaCompile Include="src\materials\textures\Mipmap_kernel.cu" />
+    <CudaCompile Include="src\shapes\Triangle.cu" />
+  </ItemGroup>
+  <ItemGroup>
+    <CudaCompile Include="src\acceleration\BVH_kernels.cu">
+      <FileType>Document</FileType>
+    </CudaCompile>
+    <ClInclude Include="src\acceleration\Scene.cuh" />
+    <ClInclude Include="src\acceleration\BVH.cuh" />
+    <CudaCompile Include="src\acceleration\Scene_kernels.cu">
+      <FileType>Document</FileType>
+    </CudaCompile>
+    <ClInclude Include="src\core\ErrorHelper.cuh" />
+    <ClInclude Include="src\core\FileIO.cuh" />
+    <ClInclude Include="src\core\GeneralHelper.cuh" />
+    <ClInclude Include="src\core\ImageIO.cuh" />
+    <ClInclude Include="src\core\IntellisenseCudaIntrinsics.h" />
+    <ClInclude Include="src\core\MemoryHelper.cuh" />
+    <ClInclude Include="src\geometry\Bound.cuh" />
+    <ClInclude Include="src\geometry\Geometry.cuh" />
+    <ClInclude Include="src\geometry\Interaction.cuh" />
+    <ClInclude Include="src\geometry\Normal.cuh" />
+    <ClInclude Include="src\geometry\Point.cuh" />
+    <ClInclude Include="src\geometry\Ray.cuh" />
+    <ClInclude Include="src\geometry\Transform.cuh" />
+    <ClInclude Include="src\geometry\Vector.cuh" />
+    <ClInclude Include="src\acceleration\Primitive.cuh" />
+    <ClInclude Include="src\intergrators\BidirectionalPathIntegrator.cuh" />
+    <ClInclude Include="src\intergrators\IntegratorHelper.cuh" />
+    <ClInclude Include="src\intergrators\MetropolisIntegrator.cuh" />
+    <ClInclude Include="src\intergrators\PathTracingIntegrator.cuh" />
+    <ClInclude Include="src\lights\Light.cuh" />
+    <ClInclude Include="src\lights\VisibilityTester.cuh" />
+    <ClInclude Include="src\materials\BSDF.cuh" />
+    <ClInclude Include="src\materials\Material.cuh" />
+    <ClInclude Include="src\materials\models\Blend.cuh" />
+    <ClInclude Include="src\materials\models\BxDF.cuh" />
+    <ClInclude Include="src\materials\models\LambertianReflection.cuh" />
+    <ClInclude Include="src\materials\models\Microfacet.cuh" />
+    <ClInclude Include="src\materials\models\Specular.cuh" />
+    <ClInclude Include="src\materials\textures\Mapping.cuh" />
+    <ClInclude Include="src\materials\textures\Mipmap.cuh" />
+    <ClInclude Include="src\materials\textures\Procedural.cuh" />
+    <ClInclude Include="src\materials\textures\Texture.cuh" />
+    <ClInclude Include="src\materials\TransportMode.cuh" />
+    <ClInclude Include="src\rendering\Camera.cuh" />
+    <ClInclude Include="src\rendering\Filter.cuh" />
+    <ClInclude Include="src\rendering\Spectrum.cuh" />
+    <ClInclude Include="src\sampling\Sampler.cuh" />
+    <ClInclude Include="src\sampling\Sampling.cuh" />
+    <ClInclude Include="src\shapes\Triangle.cuh" />
+    <ClInclude Include="extern\std_image.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\CUDA 11.2.targets" />
+  </ImportGroup>
+</Project>
