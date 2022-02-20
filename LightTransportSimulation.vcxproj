@@ -96,7 +96,6 @@
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CudaCompile Include="src\core\ImageIO_loading.cu" />
     <CudaCompile Include="src\geometry\Interaction.cu" />
     <CudaCompile Include="src\lights\VisibilityTester.cu" />
     <CudaCompile Include="src\LightTransportSimulation.cu" />
@@ -115,7 +114,8 @@
     <ClInclude Include="src\core\ErrorHelper.cuh" />
     <ClInclude Include="src\core\FileIO.cuh" />
     <ClInclude Include="src\core\GeneralHelper.cuh" />
-    <ClInclude Include="src\core\ImageIO.cuh" />
+    <ClInclude Include="src\core\ImageO.cuh" />
+    <ClInclude Include="src\core\ImageI.cuh" />
     <ClInclude Include="src\core\IntellisenseCudaIntrinsics.h" />
     <ClInclude Include="src\core\MemoryHelper.cuh" />
     <ClInclude Include="src\geometry\Bound.cuh" />
@@ -140,6 +140,7 @@
     <ClInclude Include="src\materials\models\LambertianReflection.cuh" />
     <ClInclude Include="src\materials\models\Microfacet.cuh" />
     <ClInclude Include="src\materials\models\Specular.cuh" />
+    <ClInclude Include="src\materials\textures\ImageTexture.cuh" />
     <ClInclude Include="src\materials\textures\Mapping.cuh" />
     <ClInclude Include="src\materials\textures\Mipmap.cuh" />
     <ClInclude Include="src\materials\textures\Procedural.cuh" />

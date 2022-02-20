@@ -1,7 +1,7 @@
 ﻿#ifndef __camera_cuh__
 #define __camera_cuh__
 
-#include "../core/ImageIO.cuh"
+#include "../core/ImageO.cuh"
 #include "../geometry/Ray.cuh"
 #include "Spectrum.cuh"
 #include "../lights/VisibilityTester.cuh"

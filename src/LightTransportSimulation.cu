@@ -10,8 +10,10 @@
 #include "core/FileIO.cuh"
 #include "lights/VisibilityTester.cuh"
 #include "materials/textures/Procedural.cuh"
+#include "materials/textures/ImageTexture.cuh"
 #include "intergrators/PathTracingIntegrator.cuh"
 #include "intergrators/BidirectionalPathIntegrator.cuh"
+#include "core/ImageI.cuh"
 
 using namespace lts;
 
@@ -33,10 +35,10 @@ const static int MAX_BOUNCE = 10;
 const static int ROULETTE_START = 2;
 const static bool PPM_FORMAT = true;
 
-std::string outputFileWithoutExtension("test");
+std::string outputFileWithoutExtension("outputs\\test");
 const static std::string OUTPUT_FILE = outputFileWithoutExtension + (PPM_FORMAT ? ".ppm" : "pfm");
 
-const char* SUBJECT_FILE = "res/behelit";
+const char* SUBJECT_FILE = "res/textureHolder";
 
 __host__ inline
 BVH* BVHTreeCreationKernel(Primitive* prims, BVHPrimitiveInfo* info,
@@ -82,18 +84,50 @@ BVH* BVHTreeCreationKernel(Primitive* prims, BVHPrimitiveInfo* info,
 }
 
 // todo
-__host__ inline void mipmapInitialisation() {
+__host__ inline Mipmap mipmapInitialisation(const char* file, ImageWrap wrapMode) {
 
+	int width, height;
+	Spectrum* img = loadImageFile_s(file, &width, &height);
+	Spectrum* d_img = passToDevice(img, width * height);
+
+	int level = log2f(fmaxf(width, height));
+
+	BlockedArray<Spectrum>* d_pyr;
+	gpuErrCheck(cudaMalloc((void**)&d_pyr, level * sizeof(BlockedArray<Spectrum>)));
+
+	dim3 block = dim3(BLOCK_SIZE, BLOCK_SIZE);
+	dim3 grid;
+	int w = width, h = height;
+
+	for (int l = 0; l < level; l++) {
+
+		if (l == 0) {
+			pyramidBaseInit << <1, 1 >> > (d_pyr, width, height, d_img, level);
+		}
+		else {
+
+			grid = dim3(w / BLOCK_SIZE + (w % BLOCK_SIZE != 0),
+				h / BLOCK_SIZE + (h % BLOCK_SIZE != 0));
+
+			pyramidInitKernel << <grid, block >> > (d_pyr, l, wrapMode);
+		}
+		gpuErrCheck(cudaDeviceSynchronize());
+		gpuErrCheck(cudaPeekAtLastError());
+		w = fmaxf(1, w / 2);
+		h = fmaxf(1, h / 2);
+	}
+
+	return Mipmap(wrapMode, d_pyr, width, height, level);
 }
 
 /* Scene creation kernels */
 
-__global__ void materialKernel(Material** materials, Light** lights) {
+__global__ void materialKernel(Material** materials, Light** lights, Mipmap* mpmp) {
 	int index = blockIdx.x * blockDim.x + threadIdx.x;
 
 	if (index > 0) return;
-	// constant -> spectrum(1.0f, 1.0f, 0.0f);
-	materials[0] = new MetalMaterial(new ConstantTexture<Spectrum>(Spectrum(0.8f)), Spectrum(1.f), 0.0f);
+
+	materials[0] = new MatteMaterial(new ImageTexture(new UVMapping2D(1, 1, 0, 0), mpmp), 0.0f);
 	materials[1] = new MatteMaterial(new ConstantTexture<Spectrum>(Spectrum(1.0f)), 0.0f);
 	materials[2] = new MatteMaterial(new ConstantTexture<Spectrum>(Spectrum(0.0f, 0.5f, 0.0f)), 0.0f);
 	materials[3] = new MatteMaterial(new ConstantTexture<Spectrum>(Spectrum(0.5f, 0.0f, 0.0f)), 0.0f);
@@ -129,7 +163,7 @@ __global__ void sceneInitKernel(Triangle* tris, Primitive* prims,
 }
 
 __host__ inline
-Scene* sceneCreationKernel(std::vector<const char*> meshFiles) {
+Scene* sceneCreationKernel(std::vector<const char*> meshFiles, Mipmap* d_mpmp) {
 
 	Triangle* tris;
 	Primitive* prims;
@@ -157,7 +191,7 @@ Scene* sceneCreationKernel(std::vector<const char*> meshFiles) {
 	int lightCount = 2;
 	gpuErrCheck(cudaMalloc(&d_lights, sizeof(Light**)));
 
-	materialKernel << <1, 1 >> > (d_materials, d_lights);
+	materialKernel << <1, 1 >> > (d_materials, d_lights, d_mpmp);
 	gpuErrCheck(cudaDeviceSynchronize());
 	gpuErrCheck(cudaPeekAtLastError());
 
@@ -220,6 +254,9 @@ __global__ void BidirectionalPathTracingKernel(BidirectionalPathIntegrator* BDPT
 
 int main() {
 
+	Mipmap mpmp = mipmapInitialisation("res/yo!.png", ImageWrap::Black); // fix mip map creation
+	Mipmap* d_mpmp = passToDevice(&mpmp);
+
 	cudaDeviceSetLimit(cudaLimitStackSize, 8192);
 
 	std::cout << "Rendering parameters: \n" <<
@@ -246,7 +283,7 @@ int main() {
 
 	// Scene initialisation
 	auto start = std::chrono::high_resolution_clock::now();
-	Scene* scene = sceneCreationKernel(objFiles);
+	Scene* scene = sceneCreationKernel(objFiles, d_mpmp);
 	auto end = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 	std::cout << "(1) Scene creation finished in " <<

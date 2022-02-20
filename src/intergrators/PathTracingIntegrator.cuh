@@ -112,6 +112,8 @@ namespace lts {
 
 			h_camera->sendRenderToImageFile(outputFile, format);
 
+			//std::string cmd = ppm
+
 			// open render
 			system(outputFile.c_str());
 		}

@@ -217,6 +217,10 @@ namespace lts {
 		return ret;
 	}
 
+	__host__ __device__ inline Spectrum linearInterpolation(float t, const Spectrum& s1, const Spectrum& s2) {
+		return (1 - t) * s1 + t * s2;
+	}
+
 	__host__ __device__ inline void XYZtoRGB(const float xyz[3], float rgb[3]) {
 		rgb[0] = 3.240479f * xyz[0] - 1.537150f * xyz[1] - 0.498535f * xyz[2];
 		rgb[1] = -0.969256f * xyz[0] + 1.875991f * xyz[1] + 0.041556f * xyz[2];

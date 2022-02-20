@@ -1,5 +1,5 @@
-﻿#ifndef __imageio_cuh__
-#define __imageio_cuh__
+﻿#ifndef __image_output_cuh__
+#define __image_output_cuh__
 
 #include "GeneralHelper.cuh"
 #include "../rendering/Spectrum.cuh"
@@ -74,10 +74,6 @@ namespace lts {
 		fprintf(stderr, "Error while writing to output PPM file %s. \n", filename);
 		return false;
 	}
-
-	__host__ inline void loadImageFile_f(const char* file, int* width, int* height, float* img);
-
-	__host__ inline void loadImageFile_s(const char* file, int* width, int* height, Spectrum* img);
 }
 
 #endif
