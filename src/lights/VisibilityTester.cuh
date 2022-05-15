@@ -19,11 +19,6 @@ namespace lts {
 
 		__device__ bool unoccluded(Scene scene);
 
-		__device__ void info() {
-			printf("Testing if (%f %f %f) sees (%f %f %f).\n", p0.p.x, p0.p.y, p0.p.z,
-				p1.p.x, p1.p.y, p1.p.z);
-		}
-
 	};
 
 }

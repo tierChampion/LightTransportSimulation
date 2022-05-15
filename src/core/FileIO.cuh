@@ -70,7 +70,7 @@ namespace lts {
 	* Read and load the obj file of the given mesh name.
 	* @param meshName - name of the mesh to load. Read file is meshName.obj
 	*/
-	__host__ inline TriangleMesh* parseMeshFile(std::string meshName) {
+	__host__ inline TriangleMesh* parseMeshFile(std::string meshName, const Transform& OTW) {
 
 		int nTriangles = 0;
 		std::vector<int> h_indices(0);
@@ -129,7 +129,7 @@ namespace lts {
 						h_indices.emplace_back(i - 1); // p
 						if (h_uv.size() != 0) {
 							std::from_chars(vertexData[1].data(),
-								vertexData[1].data() + vertexData[0].size(), i);
+								vertexData[1].data() + vertexData[1].size(), i);
 							h_indices.emplace_back(i - 1); // uv
 						}
 						else {
@@ -153,7 +153,7 @@ namespace lts {
 		binMeshWrite(meshName, nTriangles, h_p.size(), h_uv.size(), h_n.size(),
 			h_p.data(), h_uv.data(), h_n.data(), h_indices.data());
 
-		TriangleMesh* mesh = new TriangleMesh(Transform(), nTriangles, h_p.size(), h_uv.size(), h_n.size(),
+		TriangleMesh* mesh = new TriangleMesh(OTW, nTriangles, h_p.size(), h_uv.size(), h_n.size(),
 			h_indices.data(), h_p.data(),
 			h_n.data(),
 			h_uv.size() == 0 ? nullptr : h_uv.data());
@@ -167,7 +167,7 @@ namespace lts {
 	* Read and load the given binary file of a mesh.
 	* @param bin - opened binary file containing the data of a triangle mesh
 	*/
-	__host__ inline TriangleMesh* binMeshRead(std::ifstream& bin) {
+	__host__ inline TriangleMesh* binMeshRead(std::ifstream& bin, const Transform& OTW) {
 
 		int nTri, nP, nUV, nNorm;
 
@@ -197,7 +197,7 @@ namespace lts {
 
 		bin.close();
 
-		TriangleMesh* mesh = new TriangleMesh(Transform(), nTri, nP, nUV, nNorm,
+		TriangleMesh* mesh = new TriangleMesh(OTW, nTri, nP, nUV, nNorm,
 			indx, p,
 			n,
 			nUV == 0 ? nullptr : uv);
@@ -210,7 +210,7 @@ namespace lts {
 	* @param meshName - name of the mesh to load. The loaded file will be meshName.bin if it exist
 	* or else it will be meshName.obj
 	*/
-	__host__ inline TriangleMesh* parseMesh(std::string meshName) {
+	__host__ inline TriangleMesh* parseMesh(std::string meshName, const Transform& OTW) {
 
 		std::ifstream stream;
 		stream.open(meshName + ".bin", std::fstream::in | std::fstream::binary);
@@ -218,10 +218,10 @@ namespace lts {
 		TriangleMesh* mesh;
 
 		if (!stream.good()) {
-			mesh = parseMeshFile(meshName);
+			mesh = parseMeshFile(meshName, OTW);
 		}
 		else {
-			mesh = binMeshRead(stream);
+			mesh = binMeshRead(stream, OTW);
 		}
 
 		std::cout << "Loaded mesh: " << meshName << "\n" <<

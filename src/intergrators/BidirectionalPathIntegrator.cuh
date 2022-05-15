@@ -658,6 +658,9 @@ namespace lts {
 			system(outputFile.c_str());
 		}
 	};
+
+	__global__ void BidirectionalPathTracingKernel(BidirectionalPathIntegrator* BDPT_integrator,
+		Distribution1D* l_distrib, unsigned int seed);
 }
 
 #endif

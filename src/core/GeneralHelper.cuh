@@ -135,6 +135,7 @@ namespace lts {
 	}
 
 	__device__ __forceinline__ float fatomicMin(float* addr, float value) {
+
 		return (value >= 0) ? atomicMin((int*)addr, __float_as_int(value)) :
 			atomicMax((unsigned int*)addr, __float_as_uint(value));
 	}

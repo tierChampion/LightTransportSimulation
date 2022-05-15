@@ -54,7 +54,7 @@ namespace lts {
 					SurfaceInteraction si;
 					bool intersectionWithScene = scene->intersect(r, &si);
 
-					// 6. Account for emissive materials (todo)
+					// 6. Account for emissive materials
 					if (bounce == 0 || specularBounce) {
 						if (intersectionWithScene)
 							L += beta * si.Le(-r.d);
@@ -112,12 +112,12 @@ namespace lts {
 
 			h_camera->sendRenderToImageFile(outputFile, format);
 
-			//std::string cmd = ppm
-
 			// open render
 			system(outputFile.c_str());
 		}
 	};
+
+	__global__ void PathTracingKernel(PathTracingIntegrator* PT_integrator, Distribution1D* l_distrib, unsigned int seed);
 }
 
 #endif

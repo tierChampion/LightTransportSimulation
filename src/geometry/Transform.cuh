@@ -8,16 +8,16 @@ namespace lts {
 
 	struct Quaternion {
 
-		float q[4];
+		float w, x, y, z;
 
-		__host__ __device__ Quaternion() { q[0] = 1.0f; q[1] = q[2] = q[3] = 0.0f; }
-		__host__ __device__ Quaternion(float w, float x, float y, float z) { q[0] = w; q[1] = x; q[2] = y; q[3] = z; }
+		__host__ __device__ Quaternion() { w = 1.0f; x = y = z = 0.0f; }
+		__host__ __device__ Quaternion(float w, float x, float y, float z) : w(w), x(x), y(y), z(z) {}
 
 		__host__ __device__ bool operator==(const Quaternion& q) const {
-			return (this->q[0] == q.q[0] &&
-				this->q[1] == q.q[1] &&
-				this->q[2] == q.q[2] &&
-				this->q[3] == q.q[3]);
+			return (this->w == q.w &&
+				this->x == q.x &&
+				this->y == q.y &&
+				this->z == q.z);
 		}
 
 		__host__ __device__ bool operator!=(const Quaternion& q) const {
@@ -25,22 +25,22 @@ namespace lts {
 		}
 
 		__host__ __device__ Vector3f getAxisPart() const {
-			return Vector3f(q[1], q[2], q[3]);
+			return Vector3f(x, y, z);
 		}
 
 		// http://www.songho.ca/opengl/gl_quaternion.html
 		__host__ __device__ void toMatrix(float mat[16]) const {
-			mat[0] = 1 - 2 * (q[2] * q[2] - q[3] * q[3]);
-			mat[1] = 2 * (q[1] * q[2] - q[0] * q[3]);
-			mat[2] = 2 * (q[1] * q[3] + q[0] * q[2]);
+			mat[0] = 1 - 2 * (y * y - z * z);
+			mat[1] = 2 * (x * y - w * z);
+			mat[2] = 2 * (x * z + w * y);
 			mat[3] = 0.0f;
-			mat[4] = 2 * (q[1] * q[2] + q[0] * q[3]);
-			mat[5] = 1 - 2 * (q[1] * q[1] - q[3] * q[3]);
-			mat[6] = 2 * (q[2] * q[3] - q[0] * q[1]);
+			mat[4] = 2 * (x * y + w * z);
+			mat[5] = 1 - 2 * (x * x - z * z);
+			mat[6] = 2 * (y * z - w * x);
 			mat[7] = 0.0f;
-			mat[8] = 2 * (q[1] * q[3] - q[0] * q[2]);
-			mat[9] = 2 * (q[2] * q[3] + q[0] * q[1]);
-			mat[10] = 1 - 2 * (q[1] * q[1] - q[2] * q[2]);
+			mat[8] = 2 * (x * z - w * y);
+			mat[9] = 2 * (y * z + w * x);
+			mat[10] = 1 - 2 * (x * x - y * y);
 			mat[11] = 0.0f;
 			mat[12] = 0.0f;
 			mat[13] = 0.0f;
@@ -49,17 +49,17 @@ namespace lts {
 		}
 
 		__host__ __device__ float magnitudeSquared() const {
-			return q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3];
+			return w * w + x * x + y * y + z * z;
 		}
 	};
 
 	__host__ __device__ inline Quaternion quaternionMult(const Quaternion& q1, const Quaternion& q2) {
 
-		float w = q1.q[0] * q2.q[0] - q1.q[1] * q2.q[1] - q1.q[2] * q2.q[2] - q1.q[3] * q2.q[3];
-		float x = q1.q[0] * q2.q[1] + q1.q[1] * q2.q[0] + q1.q[2] * q2.q[3] - q1.q[3] * q2.q[2];
-		float y = q1.q[0] * q2.q[2] - q1.q[1] * q2.q[3] + q1.q[2] * q2.q[0] + q1.q[3] * q2.q[1];
-		float z = q1.q[0] * q2.q[3] + q1.q[1] * q2.q[2] - q1.q[2] * q2.q[1] + q1.q[3] * q2.q[0];
-		return Quaternion(w, x, y, z);
+		float rw = q1.w * q2.w - q1.x * q2.x - q1.y * q2.y - q1.z * q2.z;
+		float rx = q1.w * q2.x + q1.x * q2.w + q1.y * q2.z - q1.z * q2.y;
+		float ry = q1.w * q2.y - q1.x * q2.z + q1.y * q2.w + q1.z * q2.x;
+		float rz = q1.w * q2.z + q1.x * q2.y - q1.y * q2.x + q1.z * q2.w;
+		return Quaternion(rw, rx, ry, rz);
 	}
 
 	template <typename T>
@@ -82,7 +82,8 @@ namespace lts {
 	}
 
 	template <typename T>
-	__device__ inline Vector3<T> absQuaternionMultError(const Quaternion& qToTest, const Vector3<T>& v, const Vector3<T>& vError) {
+	__device__ inline Vector3<T> absQuaternionMultError(const Quaternion& qToTest,
+		const Vector3<T>& v, const Vector3<T>& vError) {
 
 		T x = v.x, y = v.y, z = v.z;
 
@@ -104,15 +105,15 @@ namespace lts {
 
 	__host__ __device__ inline Quaternion normalize(Quaternion& q) {
 		float invSqrt = quakeIIIFastInvSqrt(q.magnitudeSquared());
-		q.q[0] *= invSqrt;
-		q.q[1] *= invSqrt;
-		q.q[2] *= invSqrt;
-		q.q[3] *= invSqrt;
+		q.w *= invSqrt;
+		q.x *= invSqrt;
+		q.y *= invSqrt;
+		q.z *= invSqrt;
 		return q;
 	}
 
 	__host__ __device__ inline Quaternion conjugate(const Quaternion q) {
-		return Quaternion(q.q[0], -q.q[1], -q.q[2], -q.q[3]);
+		return Quaternion(q.w, -q.x, -q.y, -q.z);
 	}
 
 	__host__ __device__ inline Quaternion axisAngleToQuaternion(const Vector3f& axis, float theta) {
@@ -124,8 +125,8 @@ namespace lts {
 	}
 
 	__host__ __device__ inline Quaternion quaternionToAxisAngle(const Quaternion& q) {
-		float w = acosf(q.q[0]) * 2;
-		return Quaternion(w, q.q[1], q.q[2], q.q[3]);
+		float rw = acosf(q.w) * 2;
+		return Quaternion(rw, q.x, q.y, q.z);
 	}
 
 	class Transform {

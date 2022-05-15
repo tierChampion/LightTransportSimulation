@@ -403,6 +403,48 @@ namespace lts {
 
 	__global__ void createBVH(LBVHBuildNode* leaf, LBVHBuildNode* interior, BVH* tree);
 
+	__host__ inline
+		BVH* CreateBVHTree(Primitive* prims, BVHPrimitiveInfo* info,
+			MortonPrimitives* h_mortons, MortonPrimitives* d_mortons,
+			int primCount) {
+
+		sortMortonPrims(h_mortons);
+
+		dim3 block(BLOCK_SIZE, 1);
+		dim3 grid(primCount / BLOCK_SIZE + (primCount % BLOCK_SIZE != 0), 1);
+
+		// try and separate leaf and interior
+		LBVHBuildNode* h_leaf = new LBVHBuildNode[primCount];
+		LBVHBuildNode* h_interior = new LBVHBuildNode[primCount - 1];
+		for (int k = 0; k < primCount - 1; k++) h_interior[k].key = k;
+		for (int l = 0; l < primCount; l++) h_leaf[l].key = l;
+
+		LBVHBuildNode* d_interior = passToDevice(h_interior, primCount - 1);
+		LBVHBuildNode* d_leaf = passToDevice(h_leaf, primCount);
+
+		createBuildWithoutBounds << <grid, block >> > (d_mortons, d_leaf, d_interior);
+		gpuErrCheck(cudaDeviceSynchronize());
+		gpuErrCheck(cudaPeekAtLastError());
+
+		addBoundsToBuild << <grid, block >> > (info, d_leaf);
+		gpuErrCheck(cudaDeviceSynchronize());
+		gpuErrCheck(cudaPeekAtLastError());
+
+		BVH* h_traversalTree = new BVH(prims, 2 * primCount - 1);
+		BVH* d_traversalTree = passToDevice(h_traversalTree);
+
+		createBVH << <grid, block >> > (d_leaf, d_interior, d_traversalTree);
+		gpuErrCheck(cudaDeviceSynchronize());
+		gpuErrCheck(cudaPeekAtLastError());
+
+		cudaFree(d_interior);
+		delete[] h_interior;
+		cudaFree(d_leaf);
+		delete[] h_leaf;
+		delete h_traversalTree;
+
+		return d_traversalTree;
+	}
 }
 
 #endif

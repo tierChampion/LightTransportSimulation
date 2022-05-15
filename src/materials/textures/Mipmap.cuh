@@ -33,10 +33,10 @@ namespace lts {
 
 	class Mipmap {
 
-		const ImageWrap wrapMode;
+		ImageWrap wrapMode;
 		Point2i resolution;
 		const BlockedArray<Spectrum>* pyramid;
-		const int level;
+		int level;
 
 		__device__ Spectrum triangle(int l, const Point2f& st) const {
 			l = clamp(l, 0, level - 1);
@@ -53,6 +53,7 @@ namespace lts {
 
 	public:
 
+		__host__ Mipmap() : wrapMode(ImageWrap::Black), level(1) {}
 		__host__ Mipmap(ImageWrap mode, const BlockedArray<Spectrum>* pyramid, int width, int height, int level) :
 			wrapMode(mode), resolution(width, height), pyramid(pyramid), level(level)
 		{}
@@ -72,7 +73,10 @@ namespace lts {
 	};
 
 	__global__ void pyramidBaseInit(BlockedArray<Spectrum>* pyramid, int width, int height, Spectrum* image, int levels);
+
 	__global__ void pyramidInitKernel(BlockedArray<Spectrum>* pyramid, int level, ImageWrap mode);
+
+	__host__ Mipmap CreateMipMap(const char* file, ImageWrap wrapMode);
 }
 
 #endif

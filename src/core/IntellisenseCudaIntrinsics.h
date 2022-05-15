@@ -8,6 +8,12 @@
 #include "device_launch_parameters.h"
 
 
+//Reinterpret bits in a float as a signed integer
+__device__ int __float_as_int(float x);
+
+//Reinterpret bits in a float as an unsigned integer
+__device__ int __float_as_uint(float x);
+
 //    Reverse the bit order of a 32 bit unsigned integer. 
 __device__ unsigned int __brev(unsigned int  x) {};
 

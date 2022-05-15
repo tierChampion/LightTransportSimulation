@@ -4,6 +4,7 @@
 #include "../rendering/Spectrum.cuh"
 #include "../shapes/Triangle.cuh"
 #include "VisibilityTester.cuh"
+#include "../materials/textures/Mipmap.cuh"
 
 namespace lts {
 
@@ -20,17 +21,13 @@ namespace lts {
 
 	class Light {
 
-	protected:
-
-		const int nSamples;
-
 	public:
 
 		const int flag;
 		Transform lightToWorld, worldToLight;
 
-		__device__ Light(const Transform& LTW, int flag, int nSamples = 1) : lightToWorld(LTW),
-			worldToLight(LTW.getInverse()), flag(flag), nSamples((int)fmaxf(1, nSamples))
+		__device__ Light(const Transform& LTW, int flag) : lightToWorld(LTW),
+			worldToLight(LTW.getInverse()), flag(flag)
 		{}
 		__device__ virtual Spectrum sampleLi(const Interaction& it, const Point2f& sample, Vector3f* wi, float* pdf,
 			VisibilityTester* vis) const {
@@ -68,24 +65,10 @@ namespace lts {
 		}
 
 		__device__ Spectrum sampleLi(const Interaction& it, const Point2f& sample, Vector3f* wi, float* pdf,
-			VisibilityTester* vis) const override {
-
-			*wi = normalize(pLight - it.p);
-			*pdf = 1.0f;
-			*vis = VisibilityTester(it, Interaction(pLight));
-			return I / distanceSquared(pLight, it.p);
-		}
+			VisibilityTester* vis) const override;
 
 		__device__ Spectrum sampleLe(const Point2f& u1, const Point2f& u2,
-			Ray* ray, Normal3f* nLight, float* pdfPos, float* pdfDir) const override {
-
-			*ray = Ray(pLight, uniformSampleSphere(u1), INFINITY);
-			*nLight = (Normal3f)ray->d;
-
-			*pdfPos = 1;
-			*pdfDir = uniformSampleSpherePDF();
-			return I;
-		}
+			Ray* ray, Normal3f* nLight, float* pdfPos, float* pdfDir) const override;
 
 		__device__ float PdfLi(const Interaction& it, const Vector3f& wi) const override {
 			return 0.0f;
@@ -110,8 +93,8 @@ namespace lts {
 
 	public:
 
-		__device__ AreaLight(const Transform& LTW, const Spectrum& Le, int nSamples, const Triangle* tri) :
-			Light(LTW, (int)LightFlags::Area, nSamples), tri(tri), Lemit(Le), area(tri->area())
+		__device__ AreaLight(const Transform& LTW, const Spectrum& Le, const Triangle* tri) :
+			Light(LTW, (int)LightFlags::Area), tri(tri), Lemit(Le), area(tri->area())
 		{}
 
 		__device__ Spectrum L(const Interaction& it, const Vector3f& w) const {
@@ -123,48 +106,27 @@ namespace lts {
 		}
 
 		__device__ Spectrum sampleLi(const Interaction& it, const Point2f& sample, Vector3f* wi, float* pdf,
-			VisibilityTester* vis) const override {
-
-			Interaction pShape = tri->sample(it, sample);
-
-			*wi = normalize(pShape.p - it.p);
-			*pdf = tri->Pdf(it, *wi);
-			*vis = VisibilityTester(it, pShape);
-			return L(pShape, -*wi);
-		}
+			VisibilityTester* vis) const override;
 
 		__device__ Spectrum sampleLe(const Point2f& u1, const Point2f& u2,
-			Ray* ray, Normal3f* nLight, float* pdfPos, float* pdfDir) const override {
-
-			// Sample position
-			Interaction pShape = tri->sample(u1);
-			*pdfPos = tri->Pdf(pShape);
-			*nLight = pShape.n;
-
-			// Sample direction
-			Vector3f w = cosineSampleHemisphere(u2);
-			*pdfDir = cosineSampleHemispherePDF(w.z);
-			Vector3f v1, v2, n(pShape.n);
-			coordinateSystem(n, &v1, &v2);
-			w = v1 * w.x + v2 * w.y + n * w.z;
-
-			*ray = pShape.spawnRay(w);
-			return L(pShape, w);
-		}
+			Ray* ray, Normal3f* nLight, float* pdfPos, float* pdfDir) const override;
 
 		__device__ float PdfLi(const Interaction& it, const Vector3f& wi) const override {
 			return tri->Pdf(it, wi);
 		}
 
 		__device__ float PdfLe(const Ray& ray, const Normal3f& nLight,
-			float* pdfPos, float* pdfDir) const override {
+			float* pdfPos, float* pdfDir) const override;
+	};
 
-			Interaction pShape(ray.o, nLight, Vector3f(), Vector3f(nLight));
+	class InfiniteLight : public Light {
 
-			*pdfPos = tri->Pdf(pShape);
+		Mipmap* distribution;
+		Point3f worldCenter;
+		float worldRadius;
 
-			*pdfDir = cosineSampleHemispherePDF(dot(nLight, ray.d));
-		}
+	public:
+
 	};
 }
 

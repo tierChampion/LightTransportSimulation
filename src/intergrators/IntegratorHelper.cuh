@@ -137,6 +137,8 @@ namespace lts {
 
 		return estimateDirect(it, scatteringSample, *(light), lightSample, scene, specular) / lightPdf;
 	}
+
+	__global__ void lightDistributionKernel(Distribution1D* distribution, const Scene* scene);
 }
 
 #endif

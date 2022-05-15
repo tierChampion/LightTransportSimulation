@@ -30,14 +30,7 @@ namespace lts {
 		__device__ bool intersect(const Ray& r, SurfaceInteraction* si) const {
 			return traversalTree->intersect(r, si);
 		}
-
 	};
-
-	/*
-	__global__ void sceneInitKernel(Triangle* tris, Primitive* prims,
-		BVHPrimitiveInfo* info, MortonPrimitives* morton, TriangleMesh* meshes,
-		Material** materials, Light** lights, int meshCount);
-		*/
 }
 
 #endif
