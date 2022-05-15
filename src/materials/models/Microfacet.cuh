@@ -5,8 +5,6 @@
 
 namespace lts {
 
-	// todo sampling of the bxdfs and distributions!
-
 	/**
 	* Estimation of microfacet material for lambertian materials.
 	*/

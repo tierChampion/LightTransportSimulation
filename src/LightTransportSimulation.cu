@@ -29,6 +29,7 @@ std::string outputFileWithoutExtension("outputs\\test");
 const static std::string OUTPUT_FILE = outputFileWithoutExtension + (PPM_FORMAT ? ".ppm" : "pfm");
 
 const char* SUBJECT_FILE = "res/textureHolder";
+const char* SCENE_FILE = "res/kernel_box_scene/kernelBox";
 
 int main() {
 
@@ -48,7 +49,7 @@ int main() {
 
 	// Scene initialisation
 	auto start = std::chrono::high_resolution_clock::now();
-	Scene* scene = parseScene("res/kernel_box_scene/kernelBox");
+	Scene* scene = parseScene(SCENE_FILE);
 	auto end = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 	std::cout << "(1) Scene creation finished in " <<
