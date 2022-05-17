@@ -54,7 +54,9 @@ namespace lts {
 		AreaLight* al = nullptr;
 
 		if (meshIndex >= meshCount - areaLightCount) {
-			lights[index] = new AreaLight(Transform(), Spectrum(30.0f), &tris[triIndex]);
+			int leIndex = meshCount - meshIndex - 1;
+			Spectrum Le = Spectrum(LEs[leIndex * 3], LEs[leIndex * 3 + 1], LEs[leIndex * 3 + 2]);
+			lights[index] = new AreaLight(Transform(), Le, &tris[triIndex]);
 			al = (AreaLight*)lights[index];
 		}
 

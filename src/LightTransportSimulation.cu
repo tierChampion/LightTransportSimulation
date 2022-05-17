@@ -33,6 +33,10 @@ const char* SCENE_FILE = "res/kernel_box_scene/kernelBox";
 
 int main() {
 
+	int version;
+	cudaDriverGetVersion(&version);
+	printf("---Used CUDA version: %i---\n", version);
+
 	cudaDeviceSetLimit(cudaLimitStackSize, 8192);
 
 	std::cout << "Rendering parameters: \n" <<
