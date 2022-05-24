@@ -29,21 +29,21 @@ std::string outputFileWithoutExtension("outputs\\test");
 const static std::string OUTPUT_FILE = outputFileWithoutExtension + (PPM_FORMAT ? ".ppm" : "pfm");
 
 const char* SUBJECT_FILE = "res/textureHolder";
-const char* SCENE_FILE = "res/kernel_box_scene/kernelBox";
+const char* SCENE_FILE = "res/kernel_box_scene/newScene";
 
 int main() {
 
 	int version;
-	cudaDriverGetVersion(&version);
+	cudaRuntimeGetVersion(&version);
 	printf("---Used CUDA version: %i---\n", version);
 
 	cudaDeviceSetLimit(cudaLimitStackSize, 8192);
 
-	std::cout << "Rendering parameters: \n" <<
-		"Technique: " << toString(RENDERING_STRATEGY) << "\n" <<
-		"Image resolution: " << RENDER_PIXEL_WIDTH << "x" << RENDER_PIXEL_HEIGHT << " pixels\n" <<
-		"Samples per pixel: " << SAMPLE_PER_PIXEL << "\n" <<
-		"Maximum bounces: " << MAX_BOUNCE << std::endl;
+	std::cout << "** Rendering parameters: **\n" <<
+		"* Technique: " << toString(RENDERING_STRATEGY) << "\n" <<
+		"* Image resolution: " << RENDER_PIXEL_WIDTH << "x" << RENDER_PIXEL_HEIGHT << " pixels\n" <<
+		"* Samples per pixel: " << SAMPLE_PER_PIXEL << "\n" <<
+		"* Maximum bounces: " << MAX_BOUNCE << std::endl;
 
 	// Camera initialisation
 	Filter* f = new LanczosSincFilter(Vector2f(1.0f, 1.0f), 1.0f);

@@ -5,27 +5,57 @@
 
 namespace lts {
 
-	__global__ void materialInitKernel(Material** materials, char* textureParameters, Mipmap* mpmps,
-		int materialCount) {
+	/*
+	* todo:
+	* - Put every material seperatly in the file (to simplify the parameter instancing)
+	* - Allow many materials
+	* - Make kernel parallel for each material
+	*/
+
+	__global__ void materialInitKernel(Material** materials,
+		char* materialTypes, char* textureTypes, int* matStarts,
+		float* materialParams, float* roughnesses,
+		Mipmap* mpmps, int materialCount) {
 
 		// No parallelisation
 		int index = blockIdx.x * blockDim.x + threadIdx.x;
 		if (index > 0) return;
 
-		int mpmpCounter = 0;
-
 		for (int m = 0; m < materialCount; m++) {
 
 			Texture<Spectrum>* Kd;
 
-			if (textureParameters[m] == 'i') {
-				Kd = new ImageTexture(new UVMapping2D(1, 1, 0, 0), &mpmps[mpmpCounter++]);
-			}
-			else if (textureParameters[m] == 'c') {
-				Kd = new ConstantTexture(Spectrum(1.0f));
+			int start = matStarts[m];
+
+			switch (textureTypes[m]) {
+			case 'c': Kd = new ConstantTexture(Spectrum(materialParams[start],
+				materialParams[start + 1],
+				materialParams[start + 2])); break;
+			case 'b': Kd = new BilerpTexture(new UVMapping2D(1, 1, 0, 0),
+				Spectrum(1.00f, 0.01f, 0.01f),
+				Spectrum(0.01f, 1.0f, 0.01f),
+				Spectrum(0.01f, 0.0f, 1.01f),
+				Spectrum(0.01f, 0.01f, 0.0f)); break; // undone for now, not really useful and really long
+			case 'i': Kd = new ImageTexture(new UVMapping2D(1, 1, 0, 0), &mpmps[(int)materialParams[start]]); break; // 0 -> 1?
+			case 'f': Kd = new FBmTexture<Spectrum>(Transform(),
+				materialParams[start],
+				materialParams[start + 1]); break;
+			case 'w': Kd = new WrinkledTexture<Spectrum>(Transform(),
+				materialParams[start],
+				materialParams[start + 1]); break;
+			case 'v': Kd = new WindyTexture<Spectrum>(Transform()); break;
+			case 'm': Kd = new MarbleTexture(Transform(),
+				materialParams[start],
+				materialParams[start + 1],
+				materialParams[start + 2],
+				materialParams[start + 3]); break;
 			}
 
-			materials[m] = new MatteMaterial(Kd, 0.0f);
+			switch (materialTypes[m]) {
+			case 'L': materials[m] = new MatteMaterial(Kd, roughnesses[m]); break;
+				//materials[m] = new MetalMaterial(Spectrum(0.01f, 0.01f, 3.068099f), 
+				//Spectrum(0.01f, 0.01f, 0.18104f), roughnesses[m]);
+			}
 		}
 	}
 

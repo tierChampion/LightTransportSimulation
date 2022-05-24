@@ -9,8 +9,10 @@
 
 namespace lts {
 
-	__global__ void materialInitKernel(Material** materials, char* textureParameters, Mipmap* mpmps,
-		int materialCount);
+	__global__ void materialInitKernel(Material** materials,
+		char* materialTypes, char* textureTypes, int* matStarts,
+		float* materialParams, float* roughnesses,
+		Mipmap* mpmps, int materialCount);
 
 	__global__ void new_sceneInitKernel(Triangle* tris, Primitive* prims,
 		BVHPrimitiveInfo* info, MortonPrimitives* morton, TriangleMesh* meshes,
@@ -19,11 +21,7 @@ namespace lts {
 
 	__host__ inline Scene* parseScene(std::string sceneName) {
 
-		// SEE KERNELBOX.SCENE FOR TEMPLATE EXAMPLE
 		// Only support arealights for now
-		// Only support black imagewrap for now
-		// Only support matte material for now with no roughness
-		// Only support image or white constant textures
 		// Only support a scene with no subjects
 
 		std::ifstream stream;
@@ -35,18 +33,24 @@ namespace lts {
 		int meshCount;
 		std::vector<std::string> meshFiles;
 		int materialCount;
-		std::vector<char> textures;
+		std::vector<char> matTypes;
+		std::vector<char> texTypes;
+		std::vector<float> matParams;
+		std::vector<int> matStarts;
+		std::vector<float> matRoughnesses;
 		int areaLightMeshCount;
-		std::vector<float> les;
+		std::vector<float> LEs;
+
+		int matParamCounter = 0;
 
 		if (stream.is_open()) {
-
 
 			// Number of images or mipmaps
 			stream >> token;  imgCount = std::stoi(token);
 			// Mipmaps creation
 			for (int i = 0; i < imgCount; i++) {
-				stream >> token; mpmps.emplace_back(CreateMipMap(token.c_str(), ImageWrap::Black));
+				stream >> token; ImageWrap wrapMode = (ImageWrap)clamp(std::stoi(token), 0, 2);
+				stream >> token; mpmps.emplace_back(CreateMipMap(token.c_str(), wrapMode));
 			}
 			// Number of meshes
 			stream >> token; meshCount = std::stoi(token);
@@ -56,17 +60,35 @@ namespace lts {
 			}
 			// Number of materials
 			stream >> token; materialCount = std::stoi(token);
-			// Material parameters
+			// Material info
 			for (int mat = 0; mat < materialCount; mat++) {
-				stream >> token; textures.emplace_back(token[0]);
+				stream >> token; matTypes.emplace_back(token[0]);
+				stream >> token; texTypes.emplace_back(token[0]);
+
+				int matLength = 0;
+
+				char type = texTypes.back();
+
+				if (type == 'i') matLength = 1; // image
+				else if (type == 'f' || type == 'w') matLength = 2; // fbm or windy
+				else if (type == 'c') matLength = 3; // constant
+				else if (type == 'm') matLength = 4; // marble
+
+				for (int i = 0; i < matLength; i++) {
+					stream >> token; matParams.emplace_back(std::stof(token));
+				}
+				matStarts.emplace_back(matParamCounter);
+				matParamCounter += matLength;
+
+				stream >> token; matRoughnesses.emplace_back(std::stof(token));
 			}
 			// Number of meshes with light
 			stream >> token; areaLightMeshCount = std::stoi(token);
 			// AreaLight parameters
 			for (int al = 0; al < areaLightMeshCount; al++) {
-				stream >> token; les.emplace_back(std::stof(token));
-				stream >> token; les.emplace_back(std::stof(token));
-				stream >> token; les.emplace_back(std::stof(token));
+				stream >> token; LEs.emplace_back(std::stof(token));
+				stream >> token; LEs.emplace_back(std::stof(token));
+				stream >> token; LEs.emplace_back(std::stof(token));
 			}
 		}
 		stream.close();
@@ -93,11 +115,17 @@ namespace lts {
 		/* Materials initialisation */
 		Material** d_materials;
 		Mipmap* d_mpmps = passToDevice(mpmps.data(), imgCount);
-		char* d_params = passToDevice(textures.data(), materialCount);
+		char* d_matTypes = passToDevice(matTypes.data(), materialCount);
+		char* d_texTypes = passToDevice(texTypes.data(), materialCount);
+		int* d_matStarts = passToDevice(matStarts.data(), materialCount);
+		float* d_matParams = passToDevice(matParams.data(), matParamCounter);
+		float* d_roughnesses = passToDevice(matRoughnesses.data(), materialCount);
 		gpuErrCheck(cudaMalloc(&d_materials, sizeof(Material**)));
 
 		// Material kernel
-		materialInitKernel << <1, 1 >> > (d_materials, d_params, d_mpmps, materialCount);
+		materialInitKernel << <1, 1 >> > (d_materials,
+			d_matTypes, d_texTypes, d_matStarts, d_matParams, d_roughnesses,
+			d_mpmps, materialCount);
 		gpuErrCheck(cudaDeviceSynchronize());
 		gpuErrCheck(cudaPeekAtLastError());
 
@@ -112,7 +140,7 @@ namespace lts {
 		Triangle* d_tris;
 		Primitive* d_prims;
 		Light** d_lights;
-		float* d_les = passToDevice(les.data(), 3 * areaLightMeshCount);
+		float* d_les = passToDevice(LEs.data(), 3 * areaLightMeshCount);
 		gpuErrCheck(cudaMalloc(&d_tris, (triCount) * sizeof(Triangle)));
 		gpuErrCheck(cudaMalloc(&d_prims, (triCount) * sizeof(Primitive)));
 		gpuErrCheck(cudaMalloc(&d_lights, sizeof(Light**)));
