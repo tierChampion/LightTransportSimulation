@@ -158,6 +158,10 @@
     <ClInclude Include="extern\std_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="res\asianDragon.subject" />
+    <None Include="res\behelit.subject" />
+    <None Include="res\chicken.subject" />
+    <None Include="res\holder.subject" />
     <None Include="res\kernel_box_scene\kernel.scene" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

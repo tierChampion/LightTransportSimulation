@@ -224,8 +224,8 @@ namespace lts {
 			mesh = binMeshRead(stream, OTW);
 		}
 
-		std::cout << "Loaded mesh: " << meshName << "\n" <<
-			"mesh complexity: " << mesh->nTriangles << " triangles." << std::endl;
+		std::cout << "(M) Loaded mesh: " << meshName << "\n" <<
+			"	mesh complexity: " << mesh->nTriangles << " triangles." << std::endl;
 
 		return mesh;
 	}

@@ -11,10 +11,8 @@
 using namespace lts;
 
 /*
-* Things to do next:
-*
-* Generalize the scene creation to all the options
-* Make the main smaller
+* todo:
+*	add comments to a bunch of files to make them more readable
 */
 
 const static int RENDER_PIXEL_WIDTH = 512;
@@ -29,7 +27,7 @@ std::string outputFileWithoutExtension("outputs\\test");
 const static std::string OUTPUT_FILE = outputFileWithoutExtension + (PPM_FORMAT ? ".ppm" : "pfm");
 
 const char* SUBJECT_FILE = "res/textureHolder";
-const char* SCENE_FILE = "res/kernel_box_scene/newScene";
+const char* SCENE_FILE = "res/kernel_box_scene/kernel";
 
 int main() {
 
@@ -39,11 +37,11 @@ int main() {
 
 	cudaDeviceSetLimit(cudaLimitStackSize, 8192);
 
-	std::cout << "** Rendering parameters: **\n" <<
-		"* Technique: " << toString(RENDERING_STRATEGY) << "\n" <<
-		"* Image resolution: " << RENDER_PIXEL_WIDTH << "x" << RENDER_PIXEL_HEIGHT << " pixels\n" <<
-		"* Samples per pixel: " << SAMPLE_PER_PIXEL << "\n" <<
-		"* Maximum bounces: " << MAX_BOUNCE << std::endl;
+	std::cout << "###RENDERING PARAMETERS###\n" <<
+		"	Technique: " << toString(RENDERING_STRATEGY) << "\n" <<
+		"	Image resolution: " << RENDER_PIXEL_WIDTH << "x" << RENDER_PIXEL_HEIGHT << "\n" <<
+		"	Samples per pixel: " << SAMPLE_PER_PIXEL << "\n" <<
+		"	Maximum bounces: " << MAX_BOUNCE << std::endl;
 
 	// Camera initialisation
 	Filter* f = new LanczosSincFilter(Vector2f(1.0f, 1.0f), 1.0f);
@@ -53,7 +51,7 @@ int main() {
 
 	// Scene initialisation
 	auto start = std::chrono::high_resolution_clock::now();
-	Scene* scene = parseScene(SCENE_FILE);
+	Scene* scene = parseScene(SCENE_FILE, "res/holder");
 	auto end = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 	std::cout << "(1) Scene creation finished in " <<
@@ -71,7 +69,7 @@ int main() {
 	dim3 grid = dim3(RENDER_PIXEL_WIDTH / BLOCK_SIZE + (RENDER_PIXEL_WIDTH % BLOCK_SIZE != 0),
 		RENDER_PIXEL_HEIGHT / BLOCK_SIZE + (RENDER_PIXEL_HEIGHT % BLOCK_SIZE != 0));
 
-	std::cout << "Rendering started with grid of " << grid.x << "x" << grid.y << " with block of "
+	std::cout << "	Rendering started with grid of " << grid.x << "x" << grid.y << " with block of "
 		<< block.x << "x" << block.y << std::endl;
 
 	if (RENDERING_STRATEGY == IntegratorType::PathTracing) {
