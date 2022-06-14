@@ -12,22 +12,23 @@ using namespace lts;
 
 /*
 * todo:
+*
 *	add comments to a bunch of files to make them more readable
 */
 
-const static int RENDER_PIXEL_WIDTH = 512;
-const static int RENDER_PIXEL_HEIGHT = 512;
+const static int RENDER_PIXEL_WIDTH = 1920;
+const static int RENDER_PIXEL_HEIGHT = 1080;
 const static int SAMPLE_PER_PIXEL = 1;
 const static IntegratorType RENDERING_STRATEGY = IntegratorType::PathTracing;
-const static int MAX_BOUNCE = 10;
+const static int MAX_BOUNCE = 8;
 const static int ROULETTE_START = 2;
 const static bool PPM_FORMAT = true;
 
 std::string outputFileWithoutExtension("outputs\\test");
 const static std::string OUTPUT_FILE = outputFileWithoutExtension + (PPM_FORMAT ? ".ppm" : "pfm");
 
-const char* SUBJECT_FILE = "res/textureHolder";
-const char* SCENE_FILE = "res/kernel_box_scene/kernel";
+const char* SUBJECT_FILE = "res/holder";
+const char* SCENE_FILE = "res/platforms/bigBox";
 
 int main() {
 
@@ -37,21 +38,22 @@ int main() {
 
 	cudaDeviceSetLimit(cudaLimitStackSize, 8192);
 
-	std::cout << "###RENDERING PARAMETERS###\n" <<
+	std::cout << "===RENDERING PARAMETERS===\n" <<
 		"	Technique: " << toString(RENDERING_STRATEGY) << "\n" <<
 		"	Image resolution: " << RENDER_PIXEL_WIDTH << "x" << RENDER_PIXEL_HEIGHT << "\n" <<
 		"	Samples per pixel: " << SAMPLE_PER_PIXEL << "\n" <<
 		"	Maximum bounces: " << MAX_BOUNCE << std::endl;
 
 	// Camera initialisation
-	Filter* f = new LanczosSincFilter(Vector2f(1.0f, 1.0f), 1.0f);
-	Camera* h_cam = new Camera(Point3f(0.0f, 0.0f, -28.0f), Point3f(0, 0, 0), Vector3f(0, 1, 0), 40.0f, 0.0f, 28.0f,
-		RENDER_PIXEL_WIDTH, RENDER_PIXEL_HEIGHT, f);
-	delete f;
+	Filter* f = new GaussianFilter(Vector2f(1.0f, 1.0f), 1.0f);
+	Camera* h_cam;
 
 	// Scene initialisation
 	auto start = std::chrono::high_resolution_clock::now();
-	Scene* scene = parseScene(SCENE_FILE, "res/holder");
+	Scene* scene = parseScene(&h_cam, f,
+		0.f, RENDER_PIXEL_WIDTH, RENDER_PIXEL_HEIGHT,
+		SCENE_FILE, SUBJECT_FILE);
+	delete f;
 	auto end = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
 	std::cout << "(1) Scene creation finished in " <<

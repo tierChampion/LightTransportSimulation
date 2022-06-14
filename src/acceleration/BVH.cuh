@@ -256,7 +256,6 @@ namespace lts {
 			else {
 
 				current->bounds = bUnion(current->left->bounds, current->right->bounds);
-
 			}
 
 		} while (newPath && current->key != 0);
@@ -299,7 +298,13 @@ namespace lts {
 
 			primitives = d_prims;
 			count = size;
+		}
 
+		/**
+		* Returns the bounds of the scene.
+		*/
+		__device__ const Bounds3f getTreeBounds() {
+			return tree[0].bounds;
 		}
 
 		// Check Iterative Without using any other data structure -> https://afteracademy.com/blog/flatten-binary-tree-to-linked-list

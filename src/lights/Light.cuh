@@ -46,7 +46,7 @@ namespace lts {
 
 		__device__ virtual float PdfLi(const Interaction& it, const Vector3f& wi) const = 0;
 
-		__device__ virtual float PdfLe(const Ray& ray, const Normal3f& nLight,
+		__device__ virtual void PdfLe(const Ray& ray, const Normal3f& nLight,
 			float* pdfPos, float* pdfDir) const = 0;
 	};
 
@@ -74,7 +74,7 @@ namespace lts {
 			return 0.0f;
 		}
 
-		__device__ float PdfLe(const Ray& ray, const Normal3f& nLight,
+		__device__ void PdfLe(const Ray& ray, const Normal3f& nLight,
 			float* pdfPos, float* pdfDir) const override {
 			*pdfPos = 0.0f;
 			*pdfDir = uniformSampleSpherePDF();
@@ -115,18 +115,56 @@ namespace lts {
 			return tri->Pdf(it, wi);
 		}
 
-		__device__ float PdfLe(const Ray& ray, const Normal3f& nLight,
+		__device__ void PdfLe(const Ray& ray, const Normal3f& nLight,
 			float* pdfPos, float* pdfDir) const override;
 	};
 
 	class InfiniteLight : public Light {
 
-		Mipmap* distribution;
+		Spectrum Lmap; // maybe switch to texture (no idea where to get them)
 		Point3f worldCenter;
 		float worldRadius;
 
 	public:
 
+		__device__ InfiniteLight(const Transform& LTW, const Spectrum& L) :
+			Light(LTW, (int)LightFlags::Infinite), Lmap(L)
+		{}
+
+		__device__ void preprocess(const Bounds3f& sceneBounds) {
+			worldCenter = sceneBounds.pMin * 0.5f + sceneBounds.pMax * 0.5f; // turn to function
+			worldRadius = sceneBounds.diagonal().length() / 2.0f;
+		}
+
+		__device__ Spectrum power() const override {
+			return M_PI * worldRadius * Lmap;
+		}
+
+		__device__ Spectrum Le(const Ray& r) const override {
+
+			// To use with texture
+			/* Vector3f w = normalize(worldToLight(r.d));
+			Point2f st(SphericalPhi(w) * (M_1_PI * M_1_PI),
+				sphericalTheta(w) * M_1_PI); */
+			return Lmap;
+		}
+
+		__device__ Spectrum sampleLi(const Interaction& it, const Point2f& sample, Vector3f* wi, float* pdf,
+			VisibilityTester* vis) const override;
+
+		__device__ Spectrum sampleLe(const Point2f& u1, const Point2f& u2,
+			Ray* ray, Normal3f* nLight, float* pdfPos, float* pdfDir) const override {
+			return Spectrum(0.0f);
+		}
+
+		__device__ float PdfLi(const Interaction& it, const Vector3f& wi) const override {
+			return 0;
+		}
+
+		__device__ void PdfLe(const Ray& ray, const Normal3f& nLight,
+			float* pdfPos, float* pdfDir) const override {
+			printf("No PdfLe has been implemented for the infinite light.\n");
+		}
 	};
 }
 

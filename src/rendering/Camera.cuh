@@ -84,7 +84,7 @@ namespace lts {
 			Point2f pRaster = Point2f(pFilm.x / (filmResolution.diagonal().x - 1),
 				pFilm.y / (filmResolution.diagonal().y - 1));
 
-			return Ray(o - offset, (Vector3f)normalize(llc + right * pRaster.x +
+			return Ray(o + offset, (Vector3f)normalize(llc + right * pRaster.x +
 				up * pRaster.y - o - offset));
 		}
 

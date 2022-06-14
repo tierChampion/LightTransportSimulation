@@ -132,6 +132,8 @@ namespace lts {
 		int lightNum = lightDistrib.sampleDiscrete(sampler.get1DSample(id), &lightPdf);
 		const Light* light = scene.lights[lightNum];
 
+		if (!light) printf("OOPS! %i\n", lightNum);
+
 		Point2f lightSample = sampler.uniformSample(id);
 		Point2f scatteringSample = sampler.uniformSample(id);
 

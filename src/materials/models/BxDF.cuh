@@ -19,7 +19,7 @@ namespace lts {
 		if (!entering) {
 			float temp = etaI;
 			etaI = etaT;
-			etaT = etaI;
+			etaT = temp;
 			cosThetaI = fabsf(cosThetaI);
 		}
 

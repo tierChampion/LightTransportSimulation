@@ -54,16 +54,17 @@ namespace lts {
 					SurfaceInteraction si;
 					bool intersectionWithScene = scene->intersect(r, &si);
 
-					// 6. Account for emissive materials
+					// 6. Account for any direct lighting
 					if (bounce == 0 || specularBounce) {
 						if (intersectionWithScene)
 							L += beta * si.Le(-r.d);
 						else
-							L += beta * Spectrum(0.0f);
+							for (int l = 0; l < scene->lightCount; l++) {
+								L += beta * scene->lights[l]->Le(r); // infinite area light
+							}
 					}
 
 					if (!intersectionWithScene) {
-						//L += beta * Spectrum(0.5f);
 						break;
 					}
 
@@ -74,7 +75,7 @@ namespace lts {
 
 					// 7a. Accumulate direct lighting
 
-					L += beta * uniformSampleOneLight(si, *scene, *sampler, lightDistrib, specularBounce, id);
+					L += beta * uniformSampleOneLight(si, *scene, *sampler, lightDistrib, specularBounce, id); // part that is missing the infinite area light
 
 					// 7b. Sample BSDF
 					Vector3f wo = -r.d, wi;

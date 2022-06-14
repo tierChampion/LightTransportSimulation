@@ -55,7 +55,7 @@ namespace lts {
 		return L(pShape, w);
 	}
 
-	__device__ float AreaLight::PdfLe(const Ray& ray, const Normal3f& nLight,
+	__device__ void AreaLight::PdfLe(const Ray& ray, const Normal3f& nLight,
 		float* pdfPos, float* pdfDir) const {
 
 		Interaction pShape(ray.o, nLight, Vector3f(), Vector3f(nLight));
@@ -63,6 +63,26 @@ namespace lts {
 		*pdfPos = tri->Pdf(pShape);
 
 		*pdfDir = cosineSampleHemispherePDF(dot(nLight, ray.d));
+	}
+
+	__device__ Spectrum InfiniteLight::sampleLi(const Interaction& it, const Point2f& sample,
+		Vector3f* wi, float* pdf,
+		VisibilityTester* vis) const {
+		// use the half sphere (up in the y)
+
+		Vector3f w = uniformSampleHemisphere(sample);
+
+		Vector3f wup = Vector3f(1, 0, 0) * w.x + Vector3f(0, 0, 1) * w.y + Vector3f(0, 1, 0) * w.z;
+
+		Point3f pLight = worldCenter + wup * worldRadius;
+
+		*wi = normalize(pLight - it.p);
+
+		*pdf = uniformSampleHemispherePDF();
+
+		*vis = VisibilityTester(it, Interaction(pLight));
+
+		return Lmap;
 	}
 }
 

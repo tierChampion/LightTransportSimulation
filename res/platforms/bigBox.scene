@@ -1,0 +1,9 @@
+0 3 -28		0 3 0	0 1 0	40	28
+0 2 2	0 1 0	0	1
+0
+2	res/platforms/bigBox	res/platforms/bigBox_light
+2	
+L	c	0.85 0.85 0.85	0
+L	c	0.01 0.01 0.01	0
+1	25.0 25.0 25.0
+1	1.0 1.0 1.0

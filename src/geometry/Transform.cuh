@@ -133,37 +133,58 @@ namespace lts {
 
 		Vector3f translation;
 		Quaternion rotation;
+		float scale;
 
 	public:
 
-		__host__ __device__ Transform() {}
+		__host__ __device__ Transform() : scale(1) {}
+
+		__host__ __device__ Transform(float scale) : scale(scale) {}
 
 		__host__ __device__ Transform(const Vector3f& t) {
 			translation = t;
 			rotation = Quaternion();
+			scale = 1;
 		}
 
 		__host__ __device__ Transform(const Vector3f& axis, float theta) {
 			translation = Vector3f();
 			rotation = axisAngleToQuaternion(axis, fmodf(theta, 2 * M_PI));
+			scale = 1;
 		}
 
 		__host__ __device__ Transform(const Vector3f& t, const Vector3f axis, float theta) {
 			translation = t;
 			rotation = axisAngleToQuaternion(axis, fmodf(theta, 2 * M_PI));
+			scale = 1;
+		}
+
+		__host__ __device__ Transform(const Vector3f& t, const Vector3f axis, float theta, float scl) {
+			translation = t;
+			rotation = axisAngleToQuaternion(axis, fmodf(theta, 2 * M_PI));
+			scale = scl;
 		}
 
 		__host__ __device__ Transform(const Vector3f& t, const Quaternion& q) {
 			translation = t;
 			rotation = q;
+			scale = 1;
 		}
-		// not sure if works...
+
+		__host__ __device__ Transform(const Vector3f& t, const Quaternion& q, float scl) {
+			translation = t;
+			rotation = q;
+			scale = scl;
+		}
+
 		__host__ __device__ Transform getInverse() const {
-			return Transform(-translation, conjugate(rotation));
+			return Transform(-translation, conjugate(rotation), 1 / scale);
 		}
 
 		__host__ __device__ Transform operator*(const Transform& t) const {
-			return Transform(translation + t.translation, quaternionMult(rotation, t.rotation));
+			return Transform(translation + t.translation,
+				quaternionMult(rotation, t.rotation),
+				scale + t.scale);
 		}
 
 		// ABSOLUTE TRANSFORMATIONS
@@ -201,7 +222,7 @@ namespace lts {
 	__host__ __device__ inline Vector3<T> Transform::operator()(const Vector3<T>& v) const {
 		Quaternion q = Quaternion(0.0f, v.x, v.y, v.z);
 		Quaternion transformedQ = quaternionMult(quaternionMult(rotation, q), conjugate(rotation));
-		return quaternionToAxisAngle(transformedQ).getAxisPart() + translation;
+		return quaternionToAxisAngle(transformedQ).getAxisPart() * scale + translation;
 	}
 
 	template <typename T>

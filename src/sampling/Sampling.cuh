@@ -123,6 +123,8 @@ namespace lts {
 
 			int first = 0, len = size;
 
+			if (len == 1) return 0;
+
 			while (len > 0) {
 				int half = len >> 1, middle = first + half;
 

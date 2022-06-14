@@ -40,7 +40,7 @@ namespace lts {
 				matStart++; start = texStarts[matStart];
 				Texture<Spectrum>* T;
 				setMatTexture(&T, mpmps, textureTypes, materialParams,
-					matStart + 1, start);
+					matStart, start);
 
 				materials[m] = new GlassMaterial(extras[m], R, T);
 			}
@@ -84,6 +84,29 @@ namespace lts {
 		prims[triIndex].setMaterial(materials[meshIndex]); // materials cant be reused
 
 		info->addPrimitive(prims, triIndex);
+	}
+
+	__global__ void infiniteLightsKernel(BVHPrimitiveInfo* info, Light** lights,
+		float* LEs, TriangleMesh* meshes, int areaLightCount, int meshCount) {
+
+		int index = blockIdx.x * blockDim.x + threadIdx.x;
+
+		if (index > 0) return;
+
+		Spectrum L = Spectrum(LEs[3 * areaLightCount],
+			LEs[3 * areaLightCount + 1],
+			LEs[3 * areaLightCount + 2]);
+
+		InfiniteLight* infiniteL = new InfiniteLight(Transform(), L);
+		infiniteL->preprocess(info->bounds[0]);
+
+		int infiniteIndex = 0;
+
+		for (int l = 1; l <= areaLightCount; l++) {
+			infiniteIndex += meshes[meshCount - l].nTriangles;
+		}
+
+		lights[infiniteIndex] = infiniteL;
 	}
 }
 
