@@ -70,15 +70,29 @@ namespace lts {
 		VisibilityTester* vis) const {
 		// use the half sphere (up in the y)
 
-		Vector3f w = uniformSampleHemisphere(sample);
+		/*
+		Vector3f w = uniformSampleSphere(sample);
 
-		Vector3f wup = Vector3f(1, 0, 0) * w.x + Vector3f(0, 0, 1) * w.y + Vector3f(0, 1, 0) * w.z;
-
-		Point3f pLight = worldCenter + wup * worldRadius;
+		Point3f pLight = worldCenter + w * worldRadius;
 
 		*wi = normalize(pLight - it.p);
 
-		*pdf = uniformSampleHemispherePDF();
+		*pdf = uniformSampleSpherePDF();
+
+		*vis = VisibilityTester(it, Interaction(pLight));
+		*/
+
+		Vector3f w = uniformSampleHemisphere(sample);
+
+		Vector3f v1, v2, n(it.n);
+		coordinateSystem(n, &v1, &v2);
+		w = v1 * w.x + v2 * w.y + n * w.z;
+
+		Point3f pLight = worldCenter + w * worldRadius;
+
+		*wi = normalize(pLight - it.p);
+
+		*pdf = uniformSampleHemispherePDF() / (2 * M_PI * M_PI * sinf(sphericalTheta(*wi)));
 
 		*vis = VisibilityTester(it, Interaction(pLight));
 

@@ -125,6 +125,8 @@ namespace lts {
 		Point3f worldCenter;
 		float worldRadius;
 
+		// le, pdfli, sampleli
+
 	public:
 
 		__device__ InfiniteLight(const Transform& LTW, const Spectrum& L) :
@@ -158,7 +160,10 @@ namespace lts {
 		}
 
 		__device__ float PdfLi(const Interaction& it, const Vector3f& wi) const override {
-			return 0;
+
+			Vector3f w = worldToLight(wi);
+			float sinTheta = sinf(sphericalTheta(w));
+			return uniformSampleHemispherePDF() / (2 * M_PI * M_PI * sinTheta);
 		}
 
 		__device__ void PdfLe(const Ray& ray, const Normal3f& nLight,

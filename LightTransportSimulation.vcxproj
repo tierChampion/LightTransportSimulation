@@ -162,8 +162,10 @@
     <None Include="res\behelit.subject" />
     <None Include="res\blackDragon.subject" />
     <None Include="res\chicken.subject" />
+    <None Include="res\empty.scene" />
     <None Include="res\holder.subject" />
     <None Include="res\kernel_box_scene\kernel.scene" />
+    <None Include="res\moai.subject" />
     <None Include="res\platforms\bigBox.scene" />
     <None Include="res\platforms\plane.scene" />
   </ItemGroup>

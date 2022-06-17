@@ -56,7 +56,7 @@ namespace lts {
 		if (lightPdf > 0 && !Li.isBlack()) {
 			Spectrum f;
 
-			f = si.bsdf->f(si.it.wo, wi, flags);
+			f = si.bsdf->f(si.it.wo, wi, flags) * absDot(wi, si.shading.n);
 			scatteringPdf = si.bsdf->Pdf(si.it.wo, wi, flags);
 
 			if (!f.isBlack()) {
@@ -106,11 +106,15 @@ namespace lts {
 						Li = lightIt.Le(-wi);
 					}
 				}
+				else {
+					Li = light.Le(r);
+				}
 				if (!Li.isBlack()) {
 					Ld += f * Li * Tr * weight / scatteringPdf;
 				}
 			}
 		}
+
 		return Ld;
 	}
 
@@ -131,8 +135,6 @@ namespace lts {
 		float lightPdf;
 		int lightNum = lightDistrib.sampleDiscrete(sampler.get1DSample(id), &lightPdf);
 		const Light* light = scene.lights[lightNum];
-
-		if (!light) printf("OOPS! %i\n", lightNum);
 
 		Point2f lightSample = sampler.uniformSample(id);
 		Point2f scatteringSample = sampler.uniformSample(id);

@@ -74,7 +74,6 @@ namespace lts {
 					if (!si.bsdf) break;
 
 					// 7a. Accumulate direct lighting
-
 					L += beta * uniformSampleOneLight(si, *scene, *sampler, lightDistrib, specularBounce, id); // part that is missing the infinite area light
 
 					// 7b. Sample BSDF

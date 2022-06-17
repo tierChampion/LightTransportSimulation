@@ -14,10 +14,13 @@ using namespace lts;
 * todo:
 *
 *	add comments to a bunch of files to make them more readable
+*
+* make a background with infinite light (playing with the code to only have one half) and a bunch of objects
+*
 */
 
-const static int RENDER_PIXEL_WIDTH = 1920;
-const static int RENDER_PIXEL_HEIGHT = 1080;
+const static int RENDER_PIXEL_WIDTH = 500; //1920
+const static int RENDER_PIXEL_HEIGHT = 500; //1080
 const static int SAMPLE_PER_PIXEL = 1;
 const static IntegratorType RENDERING_STRATEGY = IntegratorType::PathTracing;
 const static int MAX_BOUNCE = 8;
@@ -27,7 +30,7 @@ const static bool PPM_FORMAT = true;
 std::string outputFileWithoutExtension("outputs\\test");
 const static std::string OUTPUT_FILE = outputFileWithoutExtension + (PPM_FORMAT ? ".ppm" : "pfm");
 
-const char* SUBJECT_FILE = "res/holder";
+const char* SUBJECT_FILE = "res/moai";
 const char* SCENE_FILE = "res/platforms/bigBox";
 
 int main() {
