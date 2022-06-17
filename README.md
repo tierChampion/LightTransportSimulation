@@ -15,12 +15,18 @@ This project was only tested on a GTX 1650ti with compute capability 7.5 and CUD
 
 # How to use
 
-For the time being, only a scene with no subject inside of it can be rendered via the custom .scene file format which must be selected in the main via the SCENE_FILE constant.
-The possible materials applied to a scene are also very limited for now.
-To add custom assets, 3D models must be in the .obj format, but after a first use, a .bin file will be created for faster reuse, while images must be in a resolution that is a power of 2.
+To start off, the rendering parameters are defined in the app.params file (add link). In there, are listed in order: width and height of the render, samples per pixel of the render, maximum light bounces, first bounce where russian roulette is applied, format of the render (either 0 for ppm or 1 for pfm), scene file to use and subject file to use (no extensions).
+
+In order to create a custom scene, a .scene file must be created. The scene file contains the following information: parameters of the camera (position, point to look at, up direction, vertical field of view and distance to the focus point), transform of the subject (position, axis of rotation, angle in radians of rotation and scale), number of textures and texture files if needed, number of meshes and mesh files if needed (no extensions), number of materials and material definitions if needed, number of light meshes with their luminance if needed and if there is an infinite light with its luminance if needed.
+
+Finally, the .subject file resembles the scene file a lot. It is formatted just like the scene file but without the camera information, the transform and the lights information.
+
+For the material definitions, there are three options for the moment either a MatteMaterial (L), a GlassMaterial (G) or a MirrorMaterial (R). Each of these materials require textures, which can either be Constant (c), Image (i), FBM (f), Wrinkled (w) or Marble (m). The constant texture requires an rgb color, the image texture requires the index of the image used, the FBM and windy textures require a whole number of octaves and an omega value. Finally, each material requires either a roughness value (M and R) or a index of refraction (G).
+
+For all of these files, all that is required is that the different information be seperated by white spaces. Anything after the end of the data will not be read and if an setting is not used, no parameter must be defined.
 
 # Future
 
-- Making the scene loading process more flexible by allowing for all possible materials, lights and adding outside meshes.
-- Adding a few other things from PBRT like the infinite light, bump maps and maybe other rendering algorithms (probably not happening because of memory limitations).
-- Simplifying the process of making a scene. 
+- Adding the metal material with predifined parameters (gold, copper, bronze, etc.)
+- Adding a few other things from PBRT like the bump maps and maybe other rendering algorithms (probably not happening because of memory limitations).
+
