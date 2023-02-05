@@ -10,6 +10,9 @@ namespace lts {
 	const static int UV_OFFSET = 1;
 	const static int NORMAL_OFFSET = 2;
 
+	/**
+	* Group of triangles
+	*/
 	struct TriangleMesh {
 
 		const int nTriangles;
@@ -38,6 +41,10 @@ namespace lts {
 
 		__device__ bool intersect(const Ray& ray, float* tHit, SurfaceInteraction* si) const;
 
+		/**
+		* Compute the bounding box of the triangle
+		* @return bounding box in world coordinates
+		*/
 		__device__ Bounds3f worldBound() const {
 			const Point3f& p0 = mesh->p[vertices[0 * DATA_COUNT]];
 			const Point3f& p1 = mesh->p[vertices[1 * DATA_COUNT]];
@@ -45,6 +52,10 @@ namespace lts {
 			return bUnion(Bounds3f(p0, p1), p2);
 		}
 
+		/**
+		* Area of the triangle
+		* @return Half of the length of the cross product of the sides
+		*/
 		__device__ float area() const {
 			const Point3f& p0 = mesh->p[vertices[0]];
 			const Point3f& p1 = mesh->p[vertices[1 * DATA_COUNT]];

@@ -25,9 +25,15 @@ namespace lts {
 	__device__ inline Distribution1D computeLightPowerDistribution(const Scene& scene) {
 
 		if (scene.lightCount == 0) return Distribution1D(nullptr, 0);
+
 		float* lightPower = new float[scene.lightCount];
+
+		// if lightcount > 64 doesnt work (add a constant powerdistrib (might still cause problems later on))
+
 		for (int l = 0; l < scene.lightCount; l++) {
+
 			lightPower[l] = scene.lights[l]->power().y();
+
 		}
 
 		return Distribution1D(lightPower, scene.lightCount);

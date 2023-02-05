@@ -77,13 +77,14 @@ namespace lts {
 	}
 
 	__host__ inline void readImageInformation(int* imgCount, int* subImgCount, std::vector<Mipmap>& mpmps,
-		std::string token, std::ifstream& sceneStream, std::ifstream& subjectStream, bool hasSubject) {
+		std::string token, std::ifstream& sceneStream, std::ifstream& subjectStream, bool hasSubject, const std::string absPath) {
 		// Number of images or mipmaps
 		if (hasSubject) {
 			subjectStream >> token; *subImgCount = std::stoi(token);
 			*imgCount = *subImgCount;
 		}
 		sceneStream >> token; *imgCount += std::stoi(token);
+
 		// Mipmaps creation
 		for (int i = 0; i < *imgCount; i++) {
 			bool useSceneStream = (i >= *subImgCount);
@@ -91,12 +92,12 @@ namespace lts {
 			readFromCorrectFile(sceneStream, subjectStream, useSceneStream, &token);
 			ImageWrap wrapMode = (ImageWrap)clamp(std::stoi(token), 0, 2);
 			readFromCorrectFile(sceneStream, subjectStream, useSceneStream, &token);
-			mpmps.emplace_back(CreateMipMap(token.c_str(), wrapMode));
+			mpmps.emplace_back(CreateMipMap((absPath + token).c_str(), wrapMode));
 		}
 	}
 
 	__host__ inline void readMeshInformation(int* meshCount, int* subjectMeshCount, std::vector<std::string>& meshFiles,
-		std::string token, std::ifstream& sceneStream, std::ifstream& subjectStream, bool hasSubject) {
+		std::string token, std::ifstream& sceneStream, std::ifstream& subjectStream, bool hasSubject, const std::string absPath) {
 		if (hasSubject) {
 			subjectStream >> token; *subjectMeshCount = std::stoi(token);
 			*meshCount = *subjectMeshCount;
@@ -107,7 +108,7 @@ namespace lts {
 			bool useSceneStream = (m >= *subjectMeshCount);
 
 			readFromCorrectFile(sceneStream, subjectStream, useSceneStream, &token);
-			meshFiles.emplace_back(token);
+			meshFiles.emplace_back(absPath + token);
 		}
 	}
 
@@ -193,7 +194,7 @@ namespace lts {
 
 	__host__ inline Scene* parseScene(Camera** camera, Filter* filter,
 		float aperture, int filmWidth, int filmHeight,
-		std::string sceneName, std::string subjectName = "") {
+		const std::string absPath, std::string sceneName, std::string subjectName = "") {
 
 		// Only support arealights
 		// No lights in the subject file
@@ -225,8 +226,8 @@ namespace lts {
 		std::string token;
 		std::ifstream sceneStream;
 		std::ifstream subjectStream;
-		sceneStream.open(sceneName + ".scene");
-		if (hasSubject) subjectStream.open(subjectName + ".subject");
+		sceneStream.open(absPath + sceneName + ".scene");
+		if (hasSubject) subjectStream.open(absPath + subjectName + ".subject");
 
 		/* SCENE FILE PARSING */
 		if (sceneStream.is_open() && (hasSubject == subjectStream.is_open())) {
@@ -237,10 +238,10 @@ namespace lts {
 			/* Images */
 			int subjectImgCount = 0;
 			readImageInformation(&imgCount, &subjectImgCount, mpmps,
-				token, sceneStream, subjectStream, hasSubject);
+				token, sceneStream, subjectStream, hasSubject, absPath);
 			/* Meshes */
 			readMeshInformation(&meshCount, &subjectMeshCount, meshFiles,
-				token, sceneStream, subjectStream, hasSubject);
+				token, sceneStream, subjectStream, hasSubject, absPath);
 			/* Materials */
 			int subjectMaterialCount = 0;
 			readMaterialInformation(&materialCount, &subjectMaterialCount,
@@ -293,7 +294,7 @@ namespace lts {
 		int* d_texStarts = passToDevice(texStarts.data(), matParamCounter);
 		float* d_matParams = passToDevice(matParams.data(), texParamCounter);
 		float* d_extras = passToDevice(matExtras.data(), materialCount);
-		gpuErrCheck(cudaMalloc(&d_materials, sizeof(Material**)));
+		gpuErrCheck(cudaMalloc(&d_materials, sizeof(Material**))); // allocate right size
 
 		// Material kernel
 		materialInitKernel << <1, materialCount >> > (d_materials,
@@ -313,9 +314,10 @@ namespace lts {
 		Triangle* d_tris;
 		Primitive* d_prims;
 		Light** d_lights;
-		float* d_les = passToDevice(LEs.data(), 3 * lightCount);
+		float* d_les = passToDevice(LEs.data(), 3 * (areaLightMeshCount + hasInfinite));
 		gpuErrCheck(cudaMalloc(&d_tris, (triCount) * sizeof(Triangle)));
 		gpuErrCheck(cudaMalloc(&d_prims, (triCount) * sizeof(Primitive)));
+
 		gpuErrCheck(cudaMalloc(&d_lights, sizeof(Light**)));
 
 		dim3 block(BLOCK_SIZE, 1);

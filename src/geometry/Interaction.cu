@@ -9,10 +9,6 @@ namespace lts {
 
 	__device__ void SurfaceInteraction::clean() {
 
-		/*if (!bsdf) {
-			printf("No bsdf when called clean!\n");
-		}
-		*/
 		if (bsdf) {
 			bsdf->clean();
 		}
@@ -29,7 +25,6 @@ namespace lts {
 		computeDifferentials(r);
 		primitive->computeScatteringFunctions(this, mode);
 	}
-
 }
 
 #endif

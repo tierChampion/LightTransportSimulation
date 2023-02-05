@@ -144,10 +144,6 @@ namespace lts {
 
 		__device__ Spectrum Le(const Ray& r) const override {
 
-			// To use with texture
-			/* Vector3f w = normalize(worldToLight(r.d));
-			Point2f st(SphericalPhi(w) * (M_1_PI * M_1_PI),
-				sphericalTheta(w) * M_1_PI); */
 			return Lmap;
 		}
 
@@ -156,6 +152,7 @@ namespace lts {
 
 		__device__ Spectrum sampleLe(const Point2f& u1, const Point2f& u2,
 			Ray* ray, Normal3f* nLight, float* pdfPos, float* pdfDir) const override {
+			printf("No sampleLe has been implemented for the infinite light.\n");
 			return Spectrum(0.0f);
 		}
 

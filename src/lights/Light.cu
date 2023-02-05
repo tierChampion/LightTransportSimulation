@@ -68,25 +68,15 @@ namespace lts {
 	__device__ Spectrum InfiniteLight::sampleLi(const Interaction& it, const Point2f& sample,
 		Vector3f* wi, float* pdf,
 		VisibilityTester* vis) const {
-		// use the half sphere (up in the y)
-
-		/*
-		Vector3f w = uniformSampleSphere(sample);
-
-		Point3f pLight = worldCenter + w * worldRadius;
-
-		*wi = normalize(pLight - it.p);
-
-		*pdf = uniformSampleSpherePDF();
-
-		*vis = VisibilityTester(it, Interaction(pLight));
-		*/
 
 		Vector3f w = uniformSampleHemisphere(sample);
 
-		Vector3f v1, v2, n(it.n);
-		coordinateSystem(n, &v1, &v2);
-		w = v1 * w.x + v2 * w.y + n * w.z;
+		// Hemisphere to favor (either (0, 1, 0) for up or (it.n) for normal
+		Vector3f refVec(0, 1, 0);
+
+		Vector3f v1, v2;
+		coordinateSystem(refVec, &v1, &v2);
+		w = v1 * w.x + v2 * w.y + refVec * w.z;
 
 		Point3f pLight = worldCenter + w * worldRadius;
 

@@ -1,7 +1,9 @@
 0 0 -28		0 0 0	0 1 0	40	28
+0 0 2	1 0 0	0.1	1
 1	1	res/kernel_box_scene/kernel.png
 2	res/kernel_box_scene/kernelBox_box	res/kernel_box_scene/kernelBox_light
 2	
 L	i	0	0
-L	c	0.01 0.01 0.01	0
-1	30.0 30.0 30.0
+L	c	0.1 0.1 0.1	0
+1	45.0 45.0 30.0
+0

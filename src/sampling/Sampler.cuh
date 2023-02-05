@@ -5,6 +5,9 @@
 
 namespace lts {
 
+	/**
+	* Sampler for generating random variables with specific distributions
+	*/
 	class Sampler {
 
 		curandState_t* states;
@@ -16,12 +19,23 @@ namespace lts {
 		float sqrtSPP;
 
 		__host__ Sampler() {}
+
+		/**
+		* Create a sampler
+		* @param spp - Samples per pixels
+		* @param threadCount - number of threads
+		*/
 		__host__ Sampler(int spp, int threadCount) : samplesPerPixel(spp) {
 			gpuErrCheck(cudaMalloc(&states, threadCount * sizeof(curandState_t)));
 			sqrtSPP = sqrtf(samplesPerPixel);
 			strataDimension = (int)floorf(sqrtSPP);
 		}
 
+		/**
+		* Initializes the RNG associated with the thread.
+		* @param id - thread number
+		* @param seed - random seed
+		*/
 		__device__ void prepareThread(int id, unsigned int seed) {
 
 			curand_init(seed + wangHash(id), 0, 0, &states[id]);
@@ -49,11 +63,19 @@ namespace lts {
 			return omega;
 		}
 
+		/**
+		* Returns a uniformly distributed random 2D vector.
+		* @param id - id of the thread
+		*/
 		__device__ Point2f uniformSample(int id) const {
 
 			return Point2f(curand_uniform(&states[id]), curand_uniform(&states[id]));
 		}
 
+		/**
+		* Returns a uniformly distributed random variable.
+		* @param id - id of the thread
+		*/
 		__device__ float get1DSample(int id) const {
 			return curand_uniform(&states[id]);
 		}

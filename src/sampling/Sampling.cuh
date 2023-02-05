@@ -5,6 +5,11 @@
 
 namespace lts {
 
+	/**
+	* Map a uniformly distributed 2D random variable on a 3D hemisphere.
+	* @param omage - uniformly distributed 2D variable
+	* @return vector of length 1 pointing forward
+	*/
 	__device__ inline Vector3f uniformSampleHemisphere(const Point2f& omega) {
 		float z = omega[0];
 		float r = sqrtf(fmaxf(0, 1.0f - z * z));
@@ -13,10 +18,18 @@ namespace lts {
 		return Vector3f(r * cosf(phi), r * sinf(phi), z);
 	}
 
+	/**
+	* Probability density function associated with the hemisphere mapping.
+	*/
 	__device__ inline float uniformSampleHemispherePDF() {
 		return 0.5f * M_1_PI;
 	}
 
+	/**
+	* Map a uniformly distributed 2D random variable on a 3D sphere.
+	* @param omage - uniformly distributed 2D variable
+	* @return vector of length 1
+	*/
 	__device__ inline Vector3f uniformSampleSphere(const Point2f& omega) {
 		float z = 1 - 2 * omega[0];
 		float r = sqrtf(fmaxf(0, 1.0f - z * z));
@@ -25,21 +38,36 @@ namespace lts {
 		return Vector3f(r * cosf(phi), r * sinf(phi), z);
 	}
 
+	/**
+	* Probability function associated with the sphere mapping
+	*/
 	__device__ inline float uniformSampleSpherePDF() {
 		return 0.25f * M_1_PI;
 	}
 
+	/**
+	* Map a uniformly distributed 2D random variable on a 2D disk.
+	* @param omage - uniformly distributed 2D variable
+	* @return 2D vector of length 1
+	*/
 	__device__ inline Point2f uniformSampleDisk(const Point2f& omega) {
 		float r = sqrtf(omega[0]);
 		float theta = 2 * M_PI * omega[1];
 		return Point2f(r * cosf(theta), r * sinf(theta));
 	}
 
+	/**
+	* Probability distribution function associated with the disk mapping
+	*/
 	__device__ inline float uniformSampleDiskPDF() {
 		return M_1_PI;
 	}
 
-	// More likely to sample at the apex of the hemisphere
+	/**
+	* Map a uniformly distributed 2D random variable on a 3D hemisphere with a bias for the apex.
+	* @param omage - uniformly distributed 2D variable
+	* @return vector of length 1 pointing forward
+	*/
 	__device__ inline Vector3f cosineSampleHemisphere(const Point2f& omega) {
 
 		Point2f d = uniformSampleDisk(omega);
@@ -48,10 +76,18 @@ namespace lts {
 		return Vector3f(d.x, d.y, z);
 	}
 
+	/**
+	* Probability density function associated with the cosine-weighted hemisphere mapping.
+	* @param cosTheta - cosine of the angle of the sampled point
+	*/
 	__device__ inline float cosineSampleHemispherePDF(float cosTheta) {
 		return cosTheta * M_1_PI;
 	}
 
+	/**
+	* Map a uniformly distributed 2D random variable on a 2D triangle.
+	* @param omage - uniformly distributed 2D variable
+	*/
 	__device__ inline Point2f uniformSampleTriangle(const Point2f& omega) {
 
 		float t = sqrtf(omega[0]);
@@ -70,7 +106,13 @@ namespace lts {
 		return (f * f) / (f * f + g * g);
 	}
 
-
+	/**
+	* Compute at which point the cumulative distribution function is greater than a value
+	* @param size - Length of the CDF
+	* @param cdf - Cumulative distribution function
+	* @param u - Value to test
+	* @return index when cdf >= u
+	*/
 	__device__ inline int findDistribInterval(int size, float* cdf, float u) {
 
 		int first = 0, len = size;
@@ -88,12 +130,20 @@ namespace lts {
 		return clamp(first - 1, 0, size - 2);
 	}
 
+	/**
+	* Function with it's cumulative distribution function
+	*/
 	struct Distribution1D {
 
 		float funcInt;
 		int size;
 		float* func, * cdf;
 
+		/**
+		* Create a new distribution matching a given function
+		* @param f - function to modelize
+		* @param n - number of samples in the function
+		*/
 		__device__ Distribution1D(const float* f, int n) : size(n) {
 
 			func = new float[size];

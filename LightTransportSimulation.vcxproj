@@ -158,16 +158,22 @@
     <ClInclude Include="extern\std_image.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="res\asianDragon.subject" />
     <None Include="res\behelit.subject" />
     <None Include="res\blackDragon.subject" />
     <None Include="res\chicken.subject" />
+    <None Include="res\diamond.subject" />
     <None Include="res\empty.scene" />
+    <None Include="res\empty.subject" />
+    <None Include="res\foldingbox\donut.subject" />
+    <None Include="res\foldingbox\folding.scene" />
     <None Include="res\holder.subject" />
     <None Include="res\kernel_box_scene\kernel.scene" />
+    <None Include="res\lionDragon.subject" />
     <None Include="res\moai.subject" />
     <None Include="res\platforms\bigBox.scene" />
+    <None Include="res\platforms\closeupPlane.scene" />
     <None Include="res\platforms\plane.scene" />
+    <None Include="app.params" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

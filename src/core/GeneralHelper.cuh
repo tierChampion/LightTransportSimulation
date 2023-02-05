@@ -33,6 +33,19 @@ namespace lts {
 		return device_ptr;
 	}
 
+	__host__ inline std::string getProjectDir(const char* path, const char* projectName) {
+
+		// PROJECT DIR ///
+		std::string completeProjectName = "\\" + std::string(projectName) + "\\";
+		char buffer[255] = "";
+		char* execPath = _fullpath(buffer, path, sizeof(buffer));
+		std::string PROJ_PATH(execPath);
+		size_t firstLoc = PROJ_PATH.find(completeProjectName);
+		PROJ_PATH = PROJ_PATH.substr(0, firstLoc) + completeProjectName;
+
+		return PROJ_PATH;
+	}
+
 	__host__ __device__ inline void swap(float& a, float& b) {
 		float c = a;
 		a = b;

@@ -229,6 +229,32 @@ namespace lts {
 
 		return mesh;
 	}
+
+
+	__host__ inline void readApplicationParameters(std::string parameterFile,
+		int* width, int* height, int* spp, int* bounce, int* roulette, int* format,
+		std::string* output, std::string* scene, std::string* subject) {
+
+		std::ifstream stream;
+		stream.open(parameterFile);
+
+		std::string token;
+
+		if (stream.is_open()) {
+
+			stream >> token; *width = std::stoi(token);
+			stream >> token; *height = std::stoi(token);
+			stream >> token; *spp = std::stoi(token);
+			stream >> token; *bounce = std::stoi(token);
+			stream >> token; *roulette = std::stoi(token);
+			stream >> token; *format = std::stoi(token);
+			stream >> token; *output = token + (*format ? ".pfm" : ".ppm");
+			stream >> token; *scene = token;
+			stream >> token; *subject = token;
+		}
+
+		stream.close();
+	}
 }
 
 #endif

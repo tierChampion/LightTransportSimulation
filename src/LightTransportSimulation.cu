@@ -13,27 +13,40 @@ using namespace lts;
 /*
 * todo:
 *
+*  add infinite light types (on that samples along the normal, random or always up)
+*
 *	add comments to a bunch of files to make them more readable
-*
-* make a background with infinite light (playing with the code to only have one half) and a bunch of objects
-*
 */
 
-const static int RENDER_PIXEL_WIDTH = 500; //1920
-const static int RENDER_PIXEL_HEIGHT = 500; //1080
-const static int SAMPLE_PER_PIXEL = 1;
 const static IntegratorType RENDERING_STRATEGY = IntegratorType::PathTracing;
-const static int MAX_BOUNCE = 8;
-const static int ROULETTE_START = 2;
-const static bool PPM_FORMAT = true;
 
-std::string outputFileWithoutExtension("outputs\\test");
-const static std::string OUTPUT_FILE = outputFileWithoutExtension + (PPM_FORMAT ? ".ppm" : "pfm");
+int main(int argc, char** argv) {
 
-const char* SUBJECT_FILE = "res/moai";
-const char* SCENE_FILE = "res/platforms/bigBox";
+	std::cout << "$$\\       $$\\            $$\\        $$\\      $$$$$$\\  $$\\" << std::endl;
+	std::cout << "$$ |      \\__|           $$ |       $$ |    $$  __$$\\ \\__|" << std::endl;
+	std::cout << "$$ |      $$\\   $$$$$$\\  $$$$$$$\\ $$$$$$\\   $$ / \\__| $$\\ $$$$$$\\$$$$\\" << std::endl;
+	std::cout << "$$ |      $$ | $$  __$$\\ $$  __$$\\\\_$$  _|  \\$$$$$$\\  $$ |$$  _$$  _$$\\" << std::endl;
+	std::cout << "$$ |      $$ | $$ /  $$ |$$ |  $$ | $$ |     \\____$$\\ $$ |$$ / $$ / $$ |" << std::endl;
+	std::cout << "$$ |      $$ | $$ |  $$ |$$ |  $$ | $$ |$$\\ $$\\   $$ |$$ |$$ | $$ | $$ |" << std::endl;
+	std::cout << "$$$$$$$$\\ $$ | \\$$$$$$$ |$$ |  $$ | \\$$$$  |\\$$$$$$  |$$ |$$ | $$ | $$ |" << std::endl;
+	std::cout << "\\________|\\__|  \\____$$ |\\__|  \\__|  \\____/  \\______/ \\__|\\__| \\__| \\__|" << std::endl;
+	std::cout << "               $$\\   $$ |" << std::endl;
+	std::cout << "               \\$$$$$$  |" << std::endl;
+	std::cout << "                \\______/" << std::endl << std::endl;
 
-int main() {
+	int renderWidth, renderHeight;
+	int samplesPerPixel;
+	int maxBounce;
+	int rouletteStart;
+	int format;
+	std::string outputFile;
+	std::string sceneFile;
+	std::string subjectFile;
+
+	std::string path = getProjectDir(argv[0], "LightTransportSimulation");
+
+	readApplicationParameters(path + "app.params", &renderWidth, &renderHeight,
+		&samplesPerPixel, &maxBounce, &rouletteStart, &format, &outputFile, &sceneFile, &subjectFile);
 
 	int version;
 	cudaRuntimeGetVersion(&version);
@@ -43,9 +56,9 @@ int main() {
 
 	std::cout << "===RENDERING PARAMETERS===\n" <<
 		"	Technique: " << toString(RENDERING_STRATEGY) << "\n" <<
-		"	Image resolution: " << RENDER_PIXEL_WIDTH << "x" << RENDER_PIXEL_HEIGHT << "\n" <<
-		"	Samples per pixel: " << SAMPLE_PER_PIXEL << "\n" <<
-		"	Maximum bounces: " << MAX_BOUNCE << std::endl;
+		"	Image resolution: " << renderWidth << "x" << renderHeight << "\n" <<
+		"	Samples per pixel: " << samplesPerPixel << "\n" <<
+		"	Maximum bounces: " << maxBounce << std::endl;
 
 	// Camera initialisation
 	Filter* f = new GaussianFilter(Vector2f(1.0f, 1.0f), 1.0f);
@@ -54,8 +67,8 @@ int main() {
 	// Scene initialisation
 	auto start = std::chrono::high_resolution_clock::now();
 	Scene* scene = parseScene(&h_cam, f,
-		0.f, RENDER_PIXEL_WIDTH, RENDER_PIXEL_HEIGHT,
-		SCENE_FILE, SUBJECT_FILE);
+		0.f, renderWidth, renderHeight,
+		path, sceneFile, subjectFile);
 	delete f;
 	auto end = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
@@ -71,19 +84,19 @@ int main() {
 
 	// Thread count parameters
 	dim3 block = dim3(BLOCK_SIZE, BLOCK_SIZE);
-	dim3 grid = dim3(RENDER_PIXEL_WIDTH / BLOCK_SIZE + (RENDER_PIXEL_WIDTH % BLOCK_SIZE != 0),
-		RENDER_PIXEL_HEIGHT / BLOCK_SIZE + (RENDER_PIXEL_HEIGHT % BLOCK_SIZE != 0));
+	dim3 grid = dim3(renderWidth / BLOCK_SIZE + (renderWidth % BLOCK_SIZE != 0),
+		renderHeight / BLOCK_SIZE + (renderHeight % BLOCK_SIZE != 0));
 
 	std::cout << "	Rendering started with grid of " << grid.x << "x" << grid.y << " with block of "
 		<< block.x << "x" << block.y << std::endl;
 
 	if (RENDERING_STRATEGY == IntegratorType::PathTracing) {
 		// Sampler initialisation
-		Sampler h_samp = Sampler(SAMPLE_PER_PIXEL, RENDER_PIXEL_WIDTH * RENDER_PIXEL_HEIGHT);
+		Sampler h_samp = Sampler(samplesPerPixel, renderWidth * renderHeight);
 		Sampler* d_samp = passToDevice(&h_samp);
 
 		// Initialise integrator
-		PathTracingIntegrator h_integrator(MAX_BOUNCE, ROULETTE_START, h_cam, d_samp, scene);
+		PathTracingIntegrator h_integrator(maxBounce, rouletteStart, h_cam, d_samp, scene);
 		PathTracingIntegrator* d_integrator = passToDevice(&h_integrator);
 
 		// Rendering
@@ -97,7 +110,7 @@ int main() {
 			duration.count() / 1000.0f << " seconds." << std::endl;
 
 		// Saving to image file
-		h_integrator.outputResultAndOpen(OUTPUT_FILE, !PPM_FORMAT);
+		h_integrator.outputResultAndOpen(path + outputFile, format);
 	}
 
 	/**
@@ -108,11 +121,11 @@ int main() {
 	else if (RENDERING_STRATEGY == IntegratorType::BiderectionalPathTracing) {
 
 		// Sampler initialisation
-		Sampler h_samp = Sampler(SAMPLE_PER_PIXEL, RENDER_PIXEL_WIDTH * RENDER_PIXEL_HEIGHT);
+		Sampler h_samp = Sampler(samplesPerPixel, renderWidth * renderHeight);
 		Sampler* d_samp = passToDevice(&h_samp);
 
 		// Initialise integrator
-		BidirectionalPathIntegrator h_integrator(MAX_BOUNCE, ROULETTE_START, h_cam, d_samp, scene);
+		BidirectionalPathIntegrator h_integrator(maxBounce, rouletteStart, h_cam, d_samp, scene);
 		BidirectionalPathIntegrator* d_integrator = passToDevice(&h_integrator);
 
 		// Rendering
@@ -126,7 +139,7 @@ int main() {
 			duration.count() / 1000.0f << " seconds." << std::endl;
 
 		// Saving to image file
-		h_integrator.outputResultAndOpen(OUTPUT_FILE, !PPM_FORMAT);
+		h_integrator.outputResultAndOpen(outputFile, format);
 	}
 
 	return 0;
