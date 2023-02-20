@@ -1,0 +1,27 @@
+500 500
+100
+5
+2
+0
+yo
+res/kernel_box_scene/kernel
+res/diamond
+
+/*
+* Width Height
+* Samples
+* Bounces
+* Roulette
+* Format
+* Output location
+* Scene
+* Subject
+
+Times (1080p, closeupplane):
+lion dragon = 3.06 minutes
+diamond = 14 seconds
+moai = 1.3 minutes
+
+folding box scene doesnt work (folding box mesh doesnt work and donut light causes misalignement)
+
+*/

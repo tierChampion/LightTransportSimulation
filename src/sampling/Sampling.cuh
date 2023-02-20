@@ -107,30 +107,6 @@ namespace lts {
 	}
 
 	/**
-	* Compute at which point the cumulative distribution function is greater than a value
-	* @param size - Length of the CDF
-	* @param cdf - Cumulative distribution function
-	* @param u - Value to test
-	* @return index when cdf >= u
-	*/
-	__device__ inline int findDistribInterval(int size, float* cdf, float u) {
-
-		int first = 0, len = size;
-
-		while (len > 0) {
-			int half = len >> 1, middle = first + half;
-
-			if (cdf[middle] <= u) {
-				first = middle + 1;
-				len -= half + 1;
-			}
-			else len = half;
-		}
-
-		return clamp(first - 1, 0, size - 2);
-	}
-
-	/**
 	* Function with it's cumulative distribution function
 	*/
 	struct Distribution1D {
@@ -169,6 +145,13 @@ namespace lts {
 
 		//__device__ ~Distribution1D() { free(func); free(cdf); }
 
+		/**
+		* Compute at which point the cumulative distribution function is greater than a value
+		* @param size - Length of the CDF
+		* @param cdf - Cumulative distribution function
+		* @param u - Value to test
+		* @return index when cdf >= u
+		*/
 		__device__ int findInterval(float u) const {
 
 			int first = 0, len = size;
@@ -188,20 +171,13 @@ namespace lts {
 			return clamp(first - 1, 0, size - 2);
 		}
 
-		__device__ float sampleContinous(float u, float* pdf, int* off = nullptr) const {
-
-			int offset = findDistribInterval(size + 1, cdf, u);
-
-			if (off) *off = offset;
-
-			float du = u - cdf[offset];
-			if ((cdf[offset + 1] - cdf[offset]) > 0)
-				du /= (cdf[offset + 1] - cdf[offset]);
-
-			if (pdf) *pdf = func[offset] / funcInt;
-			return (offset + du) / size;
-		}
-
+		/**
+		* Get the discrete point where the cumulative ditribution function is greater than a given value.
+		* @param u - Max value of the CDF
+		* @param pdf - Value of the PDF at the sample
+		* @param uRemapped - Discrete maximum value.
+		* @return index when CDF is greater than u.
+		*/
 		__device__ int sampleDiscrete(float u, float* pdf = nullptr, float* uRemapped = nullptr) const {
 
 			int offset = findInterval(u);
@@ -211,6 +187,11 @@ namespace lts {
 			return offset;
 		}
 
+		/**
+		* Compute the PDF of a discrete sample of the function.
+		* @param index - Position of the sample.
+		* @return PDF at index.
+		*/
 		__device__ float discretePdf(int index) const {
 			return func[index] / (funcInt * size);
 		}
