@@ -248,7 +248,7 @@ namespace lts {
 			stream >> token; *bounce = std::stoi(token);
 			stream >> token; *roulette = std::stoi(token);
 			stream >> token; *format = std::stoi(token);
-			stream >> token; *output = token + (*format ? ".pfm" : ".ppm");
+			stream >> token; *output = token + (*format ? ".pfm" : ".hdr"); // test for now
 			stream >> token; *scene = token;
 			stream >> token; *subject = token;
 		}

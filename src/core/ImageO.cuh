@@ -3,6 +3,8 @@
 
 #include "GeneralHelper.cuh"
 #include "../rendering/Spectrum.cuh"
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "../../extern/stb_image_write.h"
 
 namespace lts {
 
@@ -73,6 +75,20 @@ namespace lts {
 	fail:
 		fprintf(stderr, "Error while writing to output PPM file %s. \n", filename);
 		return false;
+	}
+
+	__host__ bool outputFile(const char* filename, const float* rgb, int width, int height, int format) {
+
+		// TODO: PNG cant take float data 
+
+		int result = stbi_write_hdr(filename, width, height, 3, rgb);
+
+		if (result == 0) {
+			std::cerr << "ERROR: Problem when trying to output the image file." << std::endl;
+			return false;
+		}
+
+		return true;
 	}
 }
 

@@ -5,6 +5,10 @@
 
 namespace lts {
 
+	/**
+	* Filter used to reduce the amount of noise in the resulting image.
+	* Better estimates continuous functions.
+	*/
 	class Filter {
 
 	public:
@@ -15,8 +19,16 @@ namespace lts {
 
 		__host__ virtual ~Filter() {}
 
+		/**
+		* Compute the kernel function at a given point p.
+		* @param p - point to compute the function at.
+		*/
 		__host__ virtual float evaluate(const Point2f& p) const = 0;
 
+		/**
+		* Compute a look-up table for the values of the kernel.
+		* @param d - dimension of the kernel
+		*/
 		__host__ float* getFilterTable(int d) {
 
 			float* table = new float[d * d];
@@ -24,6 +36,7 @@ namespace lts {
 			for (int y = 0; y < d; y++) {
 				for (int x = 0; x < d; x++) {
 
+					// Pixel at the middle of the pixel to sample the filter
 					Point2f p;
 
 					p.x = (x + 0.5f) * radius.x / d;
@@ -37,6 +50,9 @@ namespace lts {
 		}
 	};
 
+	/**
+	* Filter with a constant kernel function.
+	*/
 	class BoxFilter : public Filter {
 
 	public:
@@ -46,6 +62,9 @@ namespace lts {
 
 	};
 
+	/**
+	* Filter with a linear kernel function.
+	*/
 	class TriangleFilter : public Filter {
 
 	public:
@@ -57,6 +76,9 @@ namespace lts {
 		}
 	};
 
+	/**
+	* Filter with a kernel function matching the gaussian function.
+	*/
 	class GaussianFilter : public Filter {
 
 		const float alpha;
@@ -76,9 +98,12 @@ namespace lts {
 		}
 	};
 
+	/**
+	* Filter with a Mitchell kernel function.
+	* For better results, B + 2C = 1.
+	*/
 	class MitchellFilter : public Filter {
 
-		// Have B + 2C = 1 for better results
 		const float B, C;
 
 		__host__ float mitchell1D(float x) const {
@@ -109,6 +134,9 @@ namespace lts {
 		}
 	};
 
+	/**
+	* Filter with a sinusoidal kernel function.
+	*/
 	class LanczosSincFilter : public Filter {
 
 		float tau;

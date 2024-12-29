@@ -4,7 +4,7 @@
 #include "GeneralHelper.cuh"
 #include "../rendering/Spectrum.cuh"
 #define STB_IMAGE_IMPLEMENTATION
-#include "../../extern/std_image.h"
+#include "../../extern/stb_image.h"
 
 namespace lts {
 

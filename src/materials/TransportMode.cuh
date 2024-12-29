@@ -7,7 +7,6 @@ namespace lts {
 		Radiance,
 		Importance,
 	};
-
 }
 
 #endif

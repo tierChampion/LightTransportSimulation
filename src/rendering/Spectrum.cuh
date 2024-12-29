@@ -5,6 +5,9 @@
 
 namespace lts {
 
+	/**
+	* Class for colors in spectral forms. Is either in RGB format or in XYZ format.
+	*/
 	class Spectrum {
 
 	public:
@@ -36,6 +39,10 @@ namespace lts {
 			return ret;
 		}
 
+		/**
+		* Atomically add another spectrum to this one.
+		* @param s - Spectrum to add.
+		*/
 		__device__ Spectrum& atomicAddition(const Spectrum& s) {
 
 			atomicAdd(&r, s.r);
@@ -163,6 +170,11 @@ namespace lts {
 			return *this * -1;
 		}
 
+		/**
+		* Clamps all the channels of the spectrum between two values.
+		* @param low - minimum value
+		* @param high - maximum value
+		*/
 		__host__ __device__ Spectrum clamp(float low = 0.0f, float high = INFINITY) const {
 
 			Spectrum ret;
@@ -187,6 +199,9 @@ namespace lts {
 			return !(*this == s);
 		}
 
+		/**
+		* Tests if the spectrum is the color black.
+		*/
 		__host__ __device__ bool isBlack() const {
 
 			if (r != 0.0f) return false;
@@ -196,7 +211,9 @@ namespace lts {
 			return true;
 		}
 
-		// Luminance of the color
+		/**
+		* Compute the luminance of the spectrum.
+		*/
 		__host__ __device__ float y() const {
 			const float YWeight[3] = { 0.212671f, 0.715160f, 0.072169f };
 			return YWeight[0] * r + YWeight[1] * g + YWeight[2] * b;
@@ -207,6 +224,11 @@ namespace lts {
 		}
 	};
 
+	/**
+	* Compute the sqrt of all the values in the spectrum
+	* @param s - Initial spectrum
+	* @return Sqrt of s
+	*/
 	__host__ __device__ inline Spectrum sqrt(const Spectrum& s) {
 		Spectrum ret;
 
@@ -218,16 +240,33 @@ namespace lts {
 		return ret;
 	}
 
+	/**
+	* Interpolation between two spectrums.
+	* @param t - Interpolation constant
+	* @param s1 - First spectrum
+	* @param s2 - Second spectrum
+	* @param Spectrum between s1 and s2.
+	*/
 	__host__ __device__ inline Spectrum linearInterpolation(float t, const Spectrum& s1, const Spectrum& s2) {
 		return (1 - t) * s1 + t * s2;
 	}
 
+	/**
+	* Transform a luminance spectrum to a RGB spectrum.
+	* @param xyz - Luminance spectrum
+	* @param rgb - Return value in RGB
+	*/
 	__host__ __device__ inline void XYZtoRGB(const float xyz[3], float rgb[3]) {
 		rgb[0] = 3.240479f * xyz[0] - 1.537150f * xyz[1] - 0.498535f * xyz[2];
 		rgb[1] = -0.969256f * xyz[0] + 1.875991f * xyz[1] + 0.041556f * xyz[2];
 		rgb[2] = 0.055648f * xyz[0] - 0.204043f * xyz[1] + 1.057311f * xyz[2];
 	}
 
+	/**
+	* Transform a RGB spectrum to a luminance spectrum.
+	* @param xyz - RGB spectrum
+	* @param rgb - Return value in luminance
+	*/
 	__host__ __device__ inline void RGBtoXYZ(const float rgb[3], float xyz[3]) {
 		xyz[0] = 0.412453f * rgb[0] + 0.357580f * rgb[1] + 0.180423f * rgb[2];
 		xyz[1] = 0.212671f * rgb[0] + 0.715160f * rgb[1] + 0.072169f * rgb[2];

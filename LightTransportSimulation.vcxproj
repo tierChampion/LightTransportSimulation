@@ -105,12 +105,14 @@
     <CudaCompile Include="src\lights\VisibilityTester.cu" />
     <CudaCompile Include="src\LightTransportSimulation.cu" />
     <CudaCompile Include="src\materials\textures\Mipmap_kernel.cu" />
+    <CudaCompile Include="src\rendering\Camera.cu" />
     <CudaCompile Include="src\shapes\Triangle.cu" />
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="src\acceleration\BVH_kernels.cu">
       <FileType>Document</FileType>
     </CudaCompile>
+    <ClInclude Include="extern\stb_image_write.h" />
     <ClInclude Include="src\acceleration\Scene.cuh" />
     <ClInclude Include="src\acceleration\BVH.cuh" />
     <ClInclude Include="src\core\ErrorHelper.cuh" />
@@ -155,7 +157,7 @@
     <ClInclude Include="src\sampling\Sampler.cuh" />
     <ClInclude Include="src\sampling\Sampling.cuh" />
     <ClInclude Include="src\shapes\Triangle.cuh" />
-    <ClInclude Include="extern\std_image.h" />
+    <ClInclude Include="extern\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="res\behelit.subject" />
