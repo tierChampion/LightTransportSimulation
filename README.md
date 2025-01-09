@@ -1,5 +1,7 @@
 # Light transport simulation
 
+![dragon](renders/wrinkledDragon_512.png)
+
 Project based on the works of [PBRT3](https://www.pbr-book.org/3ed-2018/contents). Instead of using normal multithreading like in PBRT,
 this project uses CUDA to parallelise the rendering.
 
